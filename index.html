@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="מנהל משימות אישי">
+    <meta name="theme-color" content="#3b82f6">
+    <title>מנהל משימות אישי</title>
+    
+    <!-- PWA Meta Tags -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="משימות">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        h1 {
+            color: #667eea;
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+
+        .login-section {
+            background: white;
+            border-radius: 15px;
+            padding: 40px;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-logout {
+            background: #ef4444;
+        }
+
+        .btn-logout:hover {
+            background: #dc2626;
+        }
+
+        .btn-secondary {
+            background: #10b981;
+        }
+
+        .btn-secondary:hover {
+            background: #059669;
+        }
+
+        .list-selector {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        select, input, textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 16px;
+            margin-bottom: 10px;
+            transition: border-color 0.3s;
+        }
+
+        select:focus, input:focus, textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .task-form {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .task-item {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            border-right: 5px solid #667eea;
+            transition: all 0.3s;
+        }
+
+        .task-item:hover {
+            transform: translateX(-5px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+        }
+
+        .task-item.completed {
+            opacity: 0.6;
+            border-right-color: #10b981;
+        }
+
+        .task-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .task-title {
+            font-size: 18px;
+            font-weight: bold;
+            flex: 1;
+        }
+
+        .task-title.completed {
+            text-decoration: line-through;
+            color: #6b7280;
+        }
+
+        .task-meta {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 10px;
+        }
+
+        .badge {
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: bold;
+        }
+
+        .badge-category {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+
+        .badge-priority-high {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .badge-priority-medium {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+
+        .badge-priority-low {
+            background: #f3f4f6;
+            color: #374151;
+        }
+
+        .task-notes {
+            background: #fef3c7;
+            padding: 12px;
+            border-radius: 8px;
+            margin-top: 10px;
+            font-size: 14px;
+            white-space: pre-wrap;
+        }
+
+        .task-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn-small {
+            padding: 8px 16px;
+            font-size: 14px;
+        }
+
+        .btn-delete {
+            background: #ef4444;
+        }
+
+        .btn-delete:hover {
+            background: #dc2626;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .status-message {
+            background: #dbeafe;
+            color: #1e40af;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        .sync-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            font-size: 18px;
+            color: white;
+        }
+
+        @media (max-width: 600px) {
+            body {
+                padding: 10px;
+            }
+            
+            h1 {
+                font-size: 24px;
+            }
+
+            .task-actions {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Login Section -->
+        <div id="loginSection" class="login-section">
+            <h1>📚 מנהל משימות אישי</h1>
+            <p style="margin: 20px 0; color: #6b7280;">התחבר עם Google כדי להתחיל</p>
+            <button onclick="handleLogin()" class="btn">🔐 התחבר עם Google</button>
+        </div>
+
+        <!-- Main App -->
+        <div id="appSection" class="hidden">
+            <div class="header">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <h1>📚 מנהל משימות אישי</h1>
+                    <button onclick="handleLogout()" class="btn btn-logout">יציאה</button>
+                </div>
+                <p id="userEmail" style="color: #6b7280; margin-top: 10px;"></p>
+            </div>
+
+            <div id="statusMessage"></div>
+
+            <!-- List Selector -->
+            <div class="list-selector">
+                <label style="font-weight: bold; display: block; margin-bottom: 10px;">בחר רשימה:</label>
+                <select id="listSelector" onchange="loadTasks()">
+                    <option value="פרויקט מתמטיקה">פרויקט מתמטיקה</option>
+                </select>
+                <div class="sync-buttons">
+                    <button onclick="syncToSheets()" class="btn btn-secondary">☁️ שמור לענן</button>
+                    <button onclick="loadFromSheets()" class="btn btn-secondary">📥 טען מהענן</button>
+                </div>
+            </div>
+
+            <!-- Task Form -->
+            <div class="task-form">
+                <h2 style="margin-bottom: 15px;">➕ משימה חדשה</h2>
+                <input type="text" id="taskTitle" placeholder="תיאור המשימה...">
+                
+                <select id="taskCategory">
+                    <option value="כללי">כללי</option>
+                    <option value="עיצוב ממשק">עיצוב ממשק</option>
+                    <option value="תכנים חינוכיים">תכנים חינוכיים</option>
+                    <option value="פיצ'רים טכניים">פיצ'רים טכניים</option>
+                    <option value="מערכת תשלום">מערכת תשלום</option>
+                    <option value="חוויית משתמש">חוויית משתמש</option>
+                    <option value="שיווק">שיווק</option>
+                    <option value="בדיקות">בדיקות</option>
+                    <option value="סוכן AI">סוכן AI</option>
+                </select>
+
+                <select id="taskPriority">
+                    <option value="רגיל">עדיפות רגילה</option>
+                    <option value="גבוה">עדיפות גבוהה</option>
+                    <option value="נמוך">עדיפות נמוכה</option>
+                </select>
+
+                <textarea id="taskNotes" placeholder="הערות (אופציונלי)" rows="3"></textarea>
+
+                <button onclick="addTask()" class="btn">➕ הוסף משימה</button>
+            </div>
+
+            <!-- Tasks List -->
+            <div id="tasksList"></div>
+        </div>
+    </div>
+
+    <script>
+        // Google API Configuration
+        const CLIENT_ID = '210106941630-vnfadj5piep7lgnro8j31rs55cu2emfi.apps.googleusercontent.com';
+        const API_KEY = 'AIzaSyCLGeYRxrLJf1wVoYSFtH28vdWfAbJNRH8';
+        const SCOPES = 'https://www.googleapis.com/auth/spreadsheets';
+        const SPREADSHEET_ID = '1Pjbge1jElFJy7Two2hh6zjrA4BlQF1BFNfxQ3fW4OsQ';
+
+        let tokenClient;
+        let gapiInited = false;
+        let gisInited = false;
+        let currentUser = null;
+        let tasks = [];
+        let currentList = 'פרויקט מתמטיקה';
+
+        // Load Google API
+        function gapiLoaded() {
+            gapi.load('client', initializeGapiClient);
+        }
+
+        async function initializeGapiClient() {
+            await gapi.client.init({
+                apiKey: API_KEY,
+                discoveryDocs: ['https://sheets.googleapis.com/$discovery/rest?version=v4'],
+            });
+            gapiInited = true;
+        }
+
+        function gisLoaded() {
+            tokenClient = google.accounts.oauth2.initTokenClient({
+                client_id: CLIENT_ID,
+                scope: SCOPES,
+                callback: '', // defined later
+            });
+            gisInited = true;
+        }
+
+        function handleLogin() {
+            tokenClient.callback = async (resp) => {
+                if (resp.error !== undefined) {
+                    throw (resp);
+                }
+                currentUser = gapi.auth.getToken();
+                showApp();
+                await loadFromSheets();
+            };
+
+            if (gapi.client.getToken() === null) {
+                tokenClient.requestAccessToken({prompt: 'consent'});
+            } else {
+                tokenClient.requestAccessToken({prompt: ''});
+            }
+        }
+
+        function handleLogout() {
+            const token = gapi.client.getToken();
+            if (token !== null) {
+                google.accounts.oauth2.revoke(token.access_token);
+                gapi.client.setToken('');
+            }
+            showLogin();
+        }
+
+        function showLogin() {
+            document.getElementById('loginSection').classList.remove('hidden');
+            document.getElementById('appSection').classList.add('hidden');
+        }
+
+        function showApp() {
+            document.getElementById('loginSection').classList.add('hidden');
+            document.getElementById('appSection').classList.remove('hidden');
+            loadTasksFromLocal();
+            renderTasks();
+        }
+
+        function showStatus(message, type = 'info') {
+            const statusDiv = document.getElementById('statusMessage');
+            statusDiv.innerHTML = `<div class="status-message">${message}</div>`;
+            setTimeout(() => {
+                statusDiv.innerHTML = '';
+            }, 3000);
+        }
+
+        function loadTasksFromLocal() {
+            const saved = localStorage.getItem('mathWebsiteTasks');
+            if (saved) {
+                tasks = JSON.parse(saved);
+            }
+        }
+
+        function saveTasksToLocal() {
+            localStorage.setItem('mathWebsiteTasks', JSON.stringify(tasks));
+        }
+
+        function addTask() {
+            const title = document.getElementById('taskTitle').value.trim();
+            if (!title) {
+                showStatus('❌ נא להזין תיאור משימה');
+                return;
+            }
+
+            const task = {
+                id: Date.now(),
+                title: title,
+                category: document.getElementById('taskCategory').value,
+                priority: document.getElementById('taskPriority').value,
+                notes: document.getElementById('taskNotes').value,
+                completed: false,
+                listName: currentList,
+                createdAt: new Date().toISOString()
+            };
+
+            tasks.push(task);
+            saveTasksToLocal();
+            renderTasks();
+
+            // Clear form
+            document.getElementById('taskTitle').value = '';
+            document.getElementById('taskNotes').value = '';
+            
+            showStatus('✅ המשימה נוספה בהצלחה');
+        }
+
+        function toggleTask(id) {
+            const task = tasks.find(t => t.id === id);
+            if (task) {
+                task.completed = !task.completed;
+                saveTasksToLocal();
+                renderTasks();
+            }
+        }
+
+        function deleteTask(id) {
+            if (confirm('האם אתה בטוח שברצונך למחוק משימה זו?')) {
+                tasks = tasks.filter(t => t.id !== id);
+                saveTasksToLocal();
+                renderTasks();
+                showStatus('✅ המשימה נמחקה');
+            }
+        }
+
+        function renderTasks() {
+            const listTasks = tasks.filter(t => t.listName === currentList);
+            const activeTasks = listTasks.filter(t => !t.completed);
+            const completedTasks = listTasks.filter(t => t.completed);
+
+            let html = '';
+
+            if (activeTasks.length > 0) {
+                html += '<h2 style="color: white; margin-bottom: 15px;">⏳ משימות פעילות</h2>';
+                activeTasks.forEach(task => {
+                    html += renderTask(task);
+                });
+            }
+
+            if (completedTasks.length > 0) {
+                html += '<h2 style="color: white; margin: 30px 0 15px;">✅ משימות שהושלמו</h2>';
+                completedTasks.forEach(task => {
+                    html += renderTask(task);
+                });
+            }
+
+            if (listTasks.length === 0) {
+                html = '<div class="task-item" style="text-align: center; border: none;"><p>אין משימות ברשימה זו 🎯</p></div>';
+            }
+
+            document.getElementById('tasksList').innerHTML = html;
+        }
+
+        function renderTask(task) {
+            const priorityClass = task.priority === 'גבוה' ? 'badge-priority-high' : 
+                                task.priority === 'רגיל' ? 'badge-priority-medium' : 
+                                'badge-priority-low';
+            
+            return `
+                <div class="task-item ${task.completed ? 'completed' : ''}">
+                    <div class="task-header">
+                        <div class="task-title ${task.completed ? 'completed' : ''}">${task.title}</div>
+                        <div class="task-actions">
+                            <button onclick="toggleTask(${task.id})" class="btn btn-small btn-secondary">
+                                ${task.completed ? '↩️' : '✓'}
+                            </button>
+                            <button onclick="deleteTask(${task.id})" class="btn btn-small btn-delete">🗑️</button>
+                        </div>
+                    </div>
+                    <div class="task-meta">
+                        <span class="badge badge-category">${task.category}</span>
+                        <span class="badge ${priorityClass}">${task.priority}</span>
+                        <span class="badge" style="background: #f3f4f6; color: #6b7280;">
+                            ${new Date(task.createdAt).toLocaleDateString('he-IL')}
+                        </span>
+                    </div>
+                    ${task.notes ? `<div class="task-notes">${task.notes}</div>` : ''}
+                </div>
+            `;
+        }
+
+        function loadTasks() {
+            currentList = document.getElementById('listSelector').value;
+            renderTasks();
+        }
+
+        async function syncToSheets() {
+            try {
+                showStatus('☁️ שומר לענן...');
+                
+                const values = [['ID', 'Title', 'Category', 'Priority', 'Notes', 'Completed', 'ListName', 'CreatedAt']];
+                tasks.forEach(task => {
+                    values.push([
+                        task.id,
+                        task.title,
+                        task.category,
+                        task.priority,
+                        task.notes || '',
+                        task.completed,
+                        task.listName,
+                        task.createdAt
+                    ]);
+                });
+
+                await gapi.client.sheets.spreadsheets.values.update({
+                    spreadsheetId: SPREADSHEET_ID,
+                    range: 'Tasks!A1',
+                    valueInputOption: 'RAW',
+                    resource: { values: values }
+                });
+
+                showStatus('✅ נשמר בענן בהצלחה!');
+            } catch (error) {
+                console.error('Error syncing:', error);
+                showStatus('❌ שגיאה בשמירה לענן');
+            }
+        }
+
+        async function loadFromSheets() {
+            try {
+                showStatus('📥 טוען מהענן...');
+                
+                const response = await gapi.client.sheets.spreadsheets.values.get({
+                    spreadsheetId: SPREADSHEET_ID,
+                    range: 'Tasks!A1:H1000',
+                });
+
+                const rows = response.result.values;
+                if (rows && rows.length > 1) {
+                    tasks = [];
+                    for (let i = 1; i < rows.length; i++) {
+                        const row = rows[i];
+                        tasks.push({
+                            id: parseInt(row[0]),
+                            title: row[1],
+                            category: row[2],
+                            priority: row[3],
+                            notes: row[4] || '',
+                            completed: row[5] === 'TRUE' || row[5] === true,
+                            listName: row[6] || 'פרויקט מתמטיקה',
+                            createdAt: row[7]
+                        });
+                    }
+                    saveTasksToLocal();
+                    renderTasks();
+                    showStatus('✅ נטען מהענן בהצלחה!');
+                } else {
+                    showStatus('⚠️ אין נתונים בענן');
+                }
+            } catch (error) {
+                console.error('Error loading:', error);
+                showStatus('❌ שגיאה בטעינה מהענן');
+            }
+        }
+
+        // Initialize
+        window.onload = () => {
+            loadTasksFromLocal();
+        };
+    </script>
+
+    <!-- Load Google APIs -->
+    <script async defer src="https://apis.google.com/js/api.js" onload="gapiLoaded()"></script>
+    <script async defer src="https://accounts.google.com/gsi/client" onload="gisLoaded()"></script>
+</body>
+</html>
