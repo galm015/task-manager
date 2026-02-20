@@ -2,21 +2,20 @@
 <html lang="he" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="description" content="מנהל משימות אישי">
-    <meta name="theme-color" content="#3b82f6">
-    <title>מנהל משימות אישי</title>
-    
-    <!-- PWA Meta Tags -->
+    <meta name="theme-color" content="#667eea">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="משימות">
+    <title>מנהל משימות אישי</title>
     
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
         }
 
         body {
@@ -45,14 +44,6 @@
             margin-bottom: 10px;
         }
 
-        .login-section {
-            background: white;
-            border-radius: 15px;
-            padding: 40px;
-            text-align: center;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-        }
-
         .btn {
             background: #667eea;
             color: white;
@@ -63,6 +54,9 @@
             font-weight: bold;
             cursor: pointer;
             transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
         }
 
         .btn:hover {
@@ -71,12 +65,8 @@
             box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
         }
 
-        .btn-logout {
-            background: #ef4444;
-        }
-
-        .btn-logout:hover {
-            background: #dc2626;
+        .btn:active {
+            transform: translateY(0);
         }
 
         .btn-secondary {
@@ -87,12 +77,53 @@
             background: #059669;
         }
 
+        .btn-delete {
+            background: #ef4444;
+        }
+
+        .btn-delete:hover {
+            background: #dc2626;
+        }
+
+        .btn-orange {
+            background: #f59e0b;
+        }
+
+        .btn-orange:hover {
+            background: #d97706;
+        }
+
+        .btn-small {
+            padding: 8px 16px;
+            font-size: 14px;
+        }
+
+        .sync-section {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .sync-buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
         .list-selector {
             background: white;
             border-radius: 15px;
             padding: 20px;
             margin-bottom: 20px;
             box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .list-control {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
         }
 
         select, input, textarea {
@@ -118,6 +149,14 @@
             box-shadow: 0 10px 30px rgba(0,0,0,0.2);
         }
 
+        .filter-section {
+            background: white;
+            border-radius: 15px;
+            padding: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
         .task-item {
             background: white;
             border-radius: 12px;
@@ -126,6 +165,7 @@
             box-shadow: 0 4px 15px rgba(0,0,0,0.1);
             border-right: 5px solid #667eea;
             transition: all 0.3s;
+            cursor: pointer;
         }
 
         .task-item:hover {
@@ -136,6 +176,10 @@
         .task-item.completed {
             opacity: 0.6;
             border-right-color: #10b981;
+        }
+
+        .task-item.selected {
+            border: 3px solid #667eea;
         }
 
         .task-header {
@@ -149,6 +193,7 @@
             font-size: 18px;
             font-weight: bold;
             flex: 1;
+            padding-left: 10px;
         }
 
         .task-title.completed {
@@ -175,17 +220,17 @@
             color: #1e40af;
         }
 
-        .badge-priority-high {
+        .badge-priority-גבוה {
             background: #fee2e2;
             color: #991b1b;
         }
 
-        .badge-priority-medium {
+        .badge-priority-רגיל {
             background: #dbeafe;
             color: #1e40af;
         }
 
-        .badge-priority-low {
+        .badge-priority-נמוך {
             background: #f3f4f6;
             color: #374151;
         }
@@ -204,19 +249,6 @@
             gap: 10px;
         }
 
-        .btn-small {
-            padding: 8px 16px;
-            font-size: 14px;
-        }
-
-        .btn-delete {
-            background: #ef4444;
-        }
-
-        .btn-delete:hover {
-            background: #dc2626;
-        }
-
         .hidden {
             display: none;
         }
@@ -231,17 +263,26 @@
             font-weight: bold;
         }
 
-        .sync-buttons {
+        .stats {
             display: flex;
-            gap: 10px;
-            margin-top: 15px;
+            gap: 15px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
         }
 
-        .loading {
-            text-align: center;
-            padding: 40px;
-            font-size: 18px;
-            color: white;
+        .stat-item {
+            background: #f3f4f6;
+            padding: 8px 15px;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+
+        .notes-section {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
         }
 
         @media (max-width: 600px) {
@@ -253,153 +294,191 @@
                 font-size: 24px;
             }
 
+            .sync-buttons {
+                flex-direction: column;
+            }
+
             .task-actions {
                 flex-direction: column;
+            }
+
+            .btn {
+                width: 100%;
+                justify-content: center;
             }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <!-- Login Section -->
-        <div id="loginSection" class="login-section">
+        <div class="header">
             <h1>📚 מנהל משימות אישי</h1>
-            <p style="margin: 20px 0; color: #6b7280;">התחבר עם Google כדי להתחיל</p>
-            <button onclick="handleLogin()" class="btn">🔐 התחבר עם Google</button>
+            <p style="color: #6b7280; margin-top: 10px;">ניהול משימות חכם עם סנכרון קבצים</p>
         </div>
 
-        <!-- Main App -->
-        <div id="appSection" class="hidden">
-            <div class="header">
-                <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <h1>📚 מנהל משימות אישי</h1>
-                    <button onclick="handleLogout()" class="btn btn-logout">יציאה</button>
-                </div>
-                <p id="userEmail" style="color: #6b7280; margin-top: 10px;"></p>
+        <div id="statusMessage"></div>
+
+        <!-- Sync Section -->
+        <div class="sync-section">
+            <h2 style="margin-bottom: 15px;">💾 גיבוי וסנכרון</h2>
+            <div class="sync-buttons">
+                <button onclick="exportData()" class="btn btn-secondary">
+                    📥 ייצא לקובץ
+                </button>
+                <label class="btn btn-orange" style="margin: 0; cursor: pointer;">
+                    📤 ייבא מקובץ
+                    <input type="file" accept=".json" onchange="importData(event)" style="display: none;">
+                </label>
             </div>
+            <p style="color: #6b7280; font-size: 14px; margin-top: 10px;">
+                💡 ייצא קובץ מהמחשב וייבא אותו בטלפון לסנכרון בין מכשירים
+            </p>
+        </div>
 
-            <div id="statusMessage"></div>
-
-            <!-- List Selector  -->
-            <div class="list-selector">
-                <label style="font-weight: bold; display: block; margin-bottom: 10px;">בחר רשימה:</label>
-                <select id="listSelector" onchange="loadTasks()">
+        <!-- List Selector -->
+        <div class="list-selector">
+            <label style="font-weight: bold; display: block; margin-bottom: 10px;">📋 בחר רשימה:</label>
+            <div class="list-control">
+                <select id="listSelector" onchange="loadTasks()" style="flex: 1;">
                     <option value="פרויקט מתמטיקה">פרויקט מתמטיקה</option>
                 </select>
-                <div class="sync-buttons">
-                    <button onclick="syncToSheets()" class="btn btn-secondary">☁️ שמור לענן</button>
-                    <button onclick="loadFromSheets()" class="btn btn-secondary">📥 טען מהענן</button>
+                <button onclick="showDeleteListConfirm()" class="btn btn-delete btn-small">🗑️</button>
+            </div>
+            <button onclick="showNewListForm()" class="btn btn-secondary" style="width: 100%;">
+                + רשימה חדשה
+            </button>
+            <div id="newListForm" class="hidden" style="margin-top: 15px;">
+                <input type="text" id="newListName" placeholder="שם הרשימה החדשה...">
+                <div style="display: flex; gap: 10px;">
+                    <button onclick="createNewList()" class="btn btn-secondary" style="flex: 1;">יצירה</button>
+                    <button onclick="hideNewListForm()" class="btn" style="flex: 1; background: #6b7280;">ביטול</button>
                 </div>
             </div>
-
-            <!-- Task Form -->
-            <div class="task-form">
-                <h2 style="margin-bottom: 15px;">➕ משימה חדשה</h2>
-                <input type="text" id="taskTitle" placeholder="תיאור המשימה...">
-                
-                <select id="taskCategory">
-                    <option value="כללי">כללי</option>
-                    <option value="עיצוב ממשק">עיצוב ממשק</option>
-                    <option value="תכנים חינוכיים">תכנים חינוכיים</option>
-                    <option value="פיצ'רים טכניים">פיצ'רים טכניים</option>
-                    <option value="מערכת תשלום">מערכת תשלום</option>
-                    <option value="חוויית משתמש">חוויית משתמש</option>
-                    <option value="שיווק">שיווק</option>
-                    <option value="בדיקות">בדיקות</option>
-                    <option value="סוכן AI">סוכן AI</option>
-                </select>
-
-                <select id="taskPriority">
-                    <option value="רגיל">עדיפות רגילה</option>
-                    <option value="גבוה">עדיפות גבוהה</option>
-                    <option value="נמוך">עדיפות נמוכה</option>
-                </select>
-
-                <textarea id="taskNotes" placeholder="הערות (אופציונלי)" rows="3"></textarea>
-
-                <button onclick="addTask()" class="btn">➕ הוסף משימה</button>
+            <div id="deleteListConfirm" class="hidden" style="margin-top: 15px; padding: 15px; background: #fee2e2; border-radius: 8px;">
+                <p style="color: #991b1b; font-weight: bold; margin-bottom: 10px;">
+                    ⚠️ האם אתה בטוח שברצונך למחוק את הרשימה?
+                </p>
+                <div style="display: flex; gap: 10px;">
+                    <button onclick="deleteList()" class="btn btn-delete" style="flex: 1;">כן, מחק</button>
+                    <button onclick="hideDeleteListConfirm()" class="btn" style="flex: 1; background: #6b7280;">ביטול</button>
+                </div>
             </div>
-
-            <!-- Tasks List -->
-            <div id="tasksList"></div>
+            <div class="stats" style="margin-top: 15px;">
+                <span class="stat-item">✅ הושלמו: <strong id="completedCount">0</strong></span>
+                <span class="stat-item">⏳ פעילות: <strong id="activeCount">0</strong></span>
+                <span class="stat-item">📊 סה"כ: <strong id="totalCount">0</strong></span>
+            </div>
         </div>
+
+        <!-- Task Form -->
+        <div class="task-form">
+            <h2 style="margin-bottom: 15px;" id="formTitle">➕ משימה חדשה</h2>
+            <input type="text" id="taskTitle" placeholder="תיאור המשימה...">
+            
+            <select id="taskCategory">
+                <option value="כללי">כללי</option>
+                <option value="עיצוב ממשק">עיצוב ממשק</option>
+                <option value="תכנים חינוכיים">תכנים חינוכיים</option>
+                <option value="פיצ'רים טכניים">פיצ'רים טכניים</option>
+                <option value="מערכת תשלום">מערכת תשלום</option>
+                <option value="חוויית משתמש">חוויית משתמש</option>
+                <option value="שיווק">שיווק</option>
+                <option value="בדיקות">בדיקות</option>
+                <option value="סוכן AI">סוכן AI</option>
+            </select>
+
+            <select id="taskPriority">
+                <option value="רגיל">עדיפות רגילה</option>
+                <option value="גבוה">עדיפות גבוהה</option>
+                <option value="נמוך">עדיפות נמוכה</option>
+            </select>
+
+            <textarea id="taskNotes" placeholder="הערות (אופציונלי)" rows="3"></textarea>
+
+            <div style="display: flex; gap: 10px;">
+                <button onclick="saveTask()" class="btn" style="flex: 1;" id="saveBtn">➕ הוסף משימה</button>
+                <button onclick="cancelEdit()" class="btn hidden" style="flex: 1; background: #6b7280;" id="cancelBtn">ביטול</button>
+            </div>
+        </div>
+
+        <!-- Filter Section -->
+        <div class="filter-section">
+            <label style="font-weight: bold; display: block; margin-bottom: 10px;">🔍 סינון:</label>
+            <select id="filterCategory" onchange="renderTasks()">
+                <option value="הכל">כל הקטגוריות</option>
+                <option value="כללי">כללי</option>
+                <option value="עיצוב ממשק">עיצוב ממשק</option>
+                <option value="תכנים חינוכיים">תכנים חינוכיים</option>
+                <option value="פיצ'רים טכניים">פיצ'רים טכניים</option>
+                <option value="מערכת תשלום">מערכת תשלום</option>
+                <option value="חוויית משתמש">חוויית משתמש</option>
+                <option value="שיווק">שיווק</option>
+                <option value="בדיקות">בדיקות</option>
+                <option value="סוכן AI">סוכן AI</option>
+            </select>
+        </div>
+
+        <!-- Notes Section -->
+        <div class="notes-section">
+            <h2 style="margin-bottom: 15px;">📝 הערות והדבקות</h2>
+            <textarea id="generalNotes" placeholder="כתוב כאן הערות כלליות, רעיונות, קישורים..." style="min-height: 150px;"></textarea>
+            <p style="color: #6b7280; font-size: 14px; margin-top: 10px;">
+                ההערות נשמרות אוטומטית ✓
+            </p>
+        </div>
+
+        <!-- Tasks List -->
+        <div id="tasksList"></div>
     </div>
 
     <script>
-        // Google API Configuration
-        const CLIENT_ID = '210106941630-vnfadj5piep7lgnro8j31rs55cu2emfi.apps.googleusercontent.com';
-        const API_KEY = 'AIzaSyCLGeYRxrLJf1wVoYSFtH28vdWfAbJNRH8';
-        const SCOPES = 'https://www.googleapis.com/auth/spreadsheets';
-        const SPREADSHEET_ID = '1Pjbge1jElFJy7Two2hh6zjrA4BlQF1BFNfxQ3fW4OsQ';
-
-        let tokenClient;
-        let gapiInited = false;
-        let gisInited = false;
-        let currentUser = null;
         let tasks = [];
+        let lists = ['פרויקט מתמטיקה'];
         let currentList = 'פרויקט מתמטיקה';
+        let editingTaskId = null;
+        let generalNotes = '';
 
-        // Load Google API
-        function gapiLoaded() {
-            gapi.load('client', initializeGapiClient);
-        }
-
-        async function initializeGapiClient() {
-            await gapi.client.init({
-                apiKey: API_KEY,
-                discoveryDocs: ['https://sheets.googleapis.com/$discovery/rest?version=v4'],
-            });
-            gapiInited = true;
-        }
-
-        function gisLoaded() {
-            tokenClient = google.accounts.oauth2.initTokenClient({
-                client_id: CLIENT_ID,
-                scope: SCOPES,
-                callback: '', // defined later
-            });
-            gisInited = true;
-        }
-
-        function handleLogin() {
-            tokenClient.callback = async (resp) => {
-                if (resp.error !== undefined) {
-                    throw (resp);
-                }
-                currentUser = gapi.auth.getToken();
-                showApp();
-                await loadFromSheets();
-            };
-
-            if (gapi.client.getToken() === null) {
-                tokenClient.requestAccessToken({prompt: 'consent'});
-            } else {
-                tokenClient.requestAccessToken({prompt: ''});
-            }
-        }
-
-        function handleLogout() {
-            const token = gapi.client.getToken();
-            if (token !== null) {
-                google.accounts.oauth2.revoke(token.access_token);
-                gapi.client.setToken('');
-            }
-            showLogin();
-        }
-
-        function showLogin() {
-            document.getElementById('loginSection').classList.remove('hidden');
-            document.getElementById('appSection').classList.add('hidden');
-        }
-
-        function showApp() {
-            document.getElementById('loginSection').classList.add('hidden');
-            document.getElementById('appSection').classList.remove('hidden');
-            loadTasksFromLocal();
+        // Load data on startup
+        window.onload = () => {
+            loadFromLocal();
             renderTasks();
+            updateListSelector();
+            updateStats();
+        };
+
+        function loadFromLocal() {
+            const savedTasks = localStorage.getItem('mathWebsiteTasks');
+            if (savedTasks) {
+                tasks = JSON.parse(savedTasks).map(task => ({
+                    ...task,
+                    listName: task.listName || 'פרויקט מתמטיקה'
+                }));
+            }
+
+            const savedLists = localStorage.getItem('mathWebsiteLists');
+            if (savedLists) {
+                lists = JSON.parse(savedLists);
+            }
+
+            const savedNotes = localStorage.getItem('mathWebsiteNotes');
+            if (savedNotes) {
+                generalNotes = savedNotes;
+                document.getElementById('generalNotes').value = generalNotes;
+            }
         }
 
-        function showStatus(message, type = 'info') {
+        function saveToLocal() {
+            localStorage.setItem('mathWebsiteTasks', JSON.stringify(tasks));
+            localStorage.setItem('mathWebsiteLists', JSON.stringify(lists));
+            localStorage.setItem('mathWebsiteNotes', generalNotes);
+        }
+
+        document.getElementById('generalNotes').addEventListener('input', (e) => {
+            generalNotes = e.target.value;
+            saveToLocal();
+        });
+
+        function showStatus(message) {
             const statusDiv = document.getElementById('statusMessage');
             statusDiv.innerHTML = `<div class="status-message">${message}</div>`;
             setTimeout(() => {
@@ -407,68 +486,253 @@
             }, 3000);
         }
 
-        function loadTasksFromLocal() {
-            const saved = localStorage.getItem('mathWebsiteTasks');
-            if (saved) {
-                tasks = JSON.parse(saved);
+        function exportData() {
+            const dataToExport = {
+                tasks,
+                lists,
+                notes: generalNotes,
+                exportDate: new Date().toISOString(),
+                version: '1.0'
+            };
+
+            const dataStr = JSON.stringify(dataToExport, null, 2);
+            const dataBlob = new Blob([dataStr], { type: 'application/json' });
+            const url = URL.createObjectURL(dataBlob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `tasks-backup-${new Date().toISOString().split('T')[0]}.json`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+            
+            showStatus('✅ הקובץ הורד בהצלחה!');
+        }
+
+        function importData(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                try {
+                    const importedData = JSON.parse(e.target.result);
+                    
+                    if (importedData.tasks && importedData.lists) {
+                        const confirmImport = confirm(
+                            'האם אתה בטוח שברצונך לייבא נתונים? זה יחליף את כל הנתונים הנוכחיים!'
+                        );
+                        
+                        if (confirmImport) {
+                            tasks = importedData.tasks;
+                            lists = importedData.lists;
+                            generalNotes = importedData.notes || '';
+                            
+                            saveToLocal();
+                            updateListSelector();
+                            renderTasks();
+                            updateStats();
+                            document.getElementById('generalNotes').value = generalNotes;
+                            
+                            showStatus('✅ הנתונים יובאו בהצלחה!');
+                        }
+                    } else {
+                        showStatus('❌ קובץ לא תקין');
+                    }
+                } catch (error) {
+                    console.error('Import error:', error);
+                    showStatus('❌ שגיאה בייבוא הקובץ');
+                }
+            };
+            reader.readAsText(file);
+            event.target.value = '';
+        }
+
+        function showNewListForm() {
+            document.getElementById('newListForm').classList.remove('hidden');
+        }
+
+        function hideNewListForm() {
+            document.getElementById('newListForm').classList.add('hidden');
+            document.getElementById('newListName').value = '';
+        }
+
+        function createNewList() {
+            const name = document.getElementById('newListName').value.trim();
+            if (!name) {
+                showStatus('❌ נא להזין שם רשימה');
+                return;
             }
+            if (lists.includes(name)) {
+                showStatus('❌ רשימה עם שם זה כבר קיימת');
+                return;
+            }
+            
+            lists.push(name);
+            currentList = name;
+            saveToLocal();
+            updateListSelector();
+            hideNewListForm();
+            renderTasks();
+            showStatus('✅ הרשימה נוצרה בהצלחה');
         }
 
-        function saveTasksToLocal() {
-            localStorage.setItem('mathWebsiteTasks', JSON.stringify(tasks));
+        function showDeleteListConfirm() {
+            if (lists.length <= 1) {
+                showStatus('❌ לא ניתן למחוק - חייבת להישאר לפחות רשימה אחת');
+                return;
+            }
+            document.getElementById('deleteListConfirm').classList.remove('hidden');
         }
 
-        function addTask() {
+        function hideDeleteListConfirm() {
+            document.getElementById('deleteListConfirm').classList.add('hidden');
+        }
+
+        function deleteList() {
+            const tasksInList = tasks.filter(t => t.listName === currentList);
+            
+            if (tasksInList.length > 0) {
+                if (!confirm(`הרשימה "${currentList}" מכילה ${tasksInList.length} משימות. האם אתה בטוח?`)) {
+                    hideDeleteListConfirm();
+                    return;
+                }
+            }
+
+            lists = lists.filter(l => l !== currentList);
+            tasks = tasks.filter(t => t.listName !== currentList);
+            currentList = lists[0];
+            
+            saveToLocal();
+            updateListSelector();
+            hideDeleteListConfirm();
+            renderTasks();
+            showStatus('✅ הרשימה נמחקה');
+        }
+
+        function updateListSelector() {
+            const selector = document.getElementById('listSelector');
+            selector.innerHTML = lists.map(list => 
+                `<option value="${list}" ${list === currentList ? 'selected' : ''}>${list}</option>`
+            ).join('');
+        }
+
+        function loadTasks() {
+            currentList = document.getElementById('listSelector').value;
+            renderTasks();
+            updateStats();
+        }
+
+        function saveTask() {
             const title = document.getElementById('taskTitle').value.trim();
             if (!title) {
                 showStatus('❌ נא להזין תיאור משימה');
                 return;
             }
 
-            const task = {
-                id: Date.now(),
-                title: title,
-                category: document.getElementById('taskCategory').value,
-                priority: document.getElementById('taskPriority').value,
-                notes: document.getElementById('taskNotes').value,
-                completed: false,
-                listName: currentList,
-                createdAt: new Date().toISOString()
-            };
+            if (editingTaskId) {
+                // Edit existing task
+                const task = tasks.find(t => t.id === editingTaskId);
+                if (task) {
+                    task.title = title;
+                    task.category = document.getElementById('taskCategory').value;
+                    task.priority = document.getElementById('taskPriority').value;
+                    task.notes = document.getElementById('taskNotes').value;
+                    showStatus('✅ המשימה עודכנה בהצלחה');
+                }
+            } else {
+                // Add new task
+                const task = {
+                    id: Date.now(),
+                    title: title,
+                    category: document.getElementById('taskCategory').value,
+                    priority: document.getElementById('taskPriority').value,
+                    notes: document.getElementById('taskNotes').value,
+                    completed: false,
+                    listName: currentList,
+                    createdAt: new Date().toISOString()
+                };
+                tasks.push(task);
+                showStatus('✅ המשימה נוספה בהצלחה');
+            }
 
-            tasks.push(task);
-            saveTasksToLocal();
+            saveToLocal();
+            cancelEdit();
             renderTasks();
-
-            // Clear form
-            document.getElementById('taskTitle').value = '';
-            document.getElementById('taskNotes').value = '';
-            
-            showStatus('✅ המשימה נוספה בהצלחה');
+            updateStats();
         }
 
-        function toggleTask(id) {
+        function editTask(id) {
+            const task = tasks.find(t => t.id === id);
+            if (!task) return;
+
+            editingTaskId = id;
+            document.getElementById('taskTitle').value = task.title;
+            document.getElementById('taskCategory').value = task.category;
+            document.getElementById('taskPriority').value = task.priority;
+            document.getElementById('taskNotes').value = task.notes || '';
+            
+            document.getElementById('formTitle').textContent = '✏️ עריכת משימה';
+            document.getElementById('saveBtn').textContent = '💾 שמור שינויים';
+            document.getElementById('cancelBtn').classList.remove('hidden');
+            
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function cancelEdit() {
+            editingTaskId = null;
+            document.getElementById('taskTitle').value = '';
+            document.getElementById('taskCategory').value = 'כללי';
+            document.getElementById('taskPriority').value = 'רגיל';
+            document.getElementById('taskNotes').value = '';
+            
+            document.getElementById('formTitle').textContent = '➕ משימה חדשה';
+            document.getElementById('saveBtn').textContent = '➕ הוסף משימה';
+            document.getElementById('cancelBtn').classList.add('hidden');
+        }
+
+        function toggleTask(id, event) {
+            event.stopPropagation();
             const task = tasks.find(t => t.id === id);
             if (task) {
                 task.completed = !task.completed;
-                saveTasksToLocal();
+                saveToLocal();
                 renderTasks();
+                updateStats();
             }
         }
 
-        function deleteTask(id) {
+        function deleteTask(id, event) {
+            event.stopPropagation();
             if (confirm('האם אתה בטוח שברצונך למחוק משימה זו?')) {
                 tasks = tasks.filter(t => t.id !== id);
-                saveTasksToLocal();
+                saveToLocal();
                 renderTasks();
+                updateStats();
                 showStatus('✅ המשימה נמחקה');
             }
         }
 
-        function renderTasks() {
+        function updateStats() {
             const listTasks = tasks.filter(t => t.listName === currentList);
-            const activeTasks = listTasks.filter(t => !t.completed);
-            const completedTasks = listTasks.filter(t => t.completed);
+            const filterCat = document.getElementById('filterCategory').value;
+            const filtered = filterCat === 'הכל' ? listTasks : listTasks.filter(t => t.category === filterCat);
+            
+            const completed = filtered.filter(t => t.completed).length;
+            const active = filtered.filter(t => !t.completed).length;
+            
+            document.getElementById('completedCount').textContent = completed;
+            document.getElementById('activeCount').textContent = active;
+            document.getElementById('totalCount').textContent = filtered.length;
+        }
+
+        function renderTasks() {
+            const filterCat = document.getElementById('filterCategory').value;
+            const listTasks = tasks.filter(t => t.listName === currentList);
+            const filteredTasks = filterCat === 'הכל' ? listTasks : listTasks.filter(t => t.category === filterCat);
+            
+            const activeTasks = filteredTasks.filter(t => !t.completed);
+            const completedTasks = filteredTasks.filter(t => t.completed);
 
             let html = '';
 
@@ -486,32 +750,29 @@
                 });
             }
 
-            if (listTasks.length === 0) {
+            if (filteredTasks.length === 0) {
                 html = '<div class="task-item" style="text-align: center; border: none;"><p>אין משימות ברשימה זו 🎯</p></div>';
             }
 
             document.getElementById('tasksList').innerHTML = html;
+            updateStats();
         }
 
         function renderTask(task) {
-            const priorityClass = task.priority === 'גבוה' ? 'badge-priority-high' : 
-                                task.priority === 'רגיל' ? 'badge-priority-medium' : 
-                                'badge-priority-low';
-            
             return `
-                <div class="task-item ${task.completed ? 'completed' : ''}">
+                <div class="task-item ${task.completed ? 'completed' : ''} ${editingTaskId === task.id ? 'selected' : ''}" onclick="editTask(${task.id})">
                     <div class="task-header">
                         <div class="task-title ${task.completed ? 'completed' : ''}">${task.title}</div>
                         <div class="task-actions">
-                            <button onclick="toggleTask(${task.id})" class="btn btn-small btn-secondary">
+                            <button onclick="toggleTask(${task.id}, event)" class="btn btn-small btn-secondary">
                                 ${task.completed ? '↩️' : '✓'}
                             </button>
-                            <button onclick="deleteTask(${task.id})" class="btn btn-small btn-delete">🗑️</button>
+                            <button onclick="deleteTask(${task.id}, event)" class="btn btn-small btn-delete">🗑️</button>
                         </div>
                     </div>
                     <div class="task-meta">
                         <span class="badge badge-category">${task.category}</span>
-                        <span class="badge ${priorityClass}">${task.priority}</span>
+                        <span class="badge badge-priority-${task.priority}">${task.priority}</span>
                         <span class="badge" style="background: #f3f4f6; color: #6b7280;">
                             ${new Date(task.createdAt).toLocaleDateString('he-IL')}
                         </span>
@@ -520,89 +781,6 @@
                 </div>
             `;
         }
-
-        function loadTasks() {
-            currentList = document.getElementById('listSelector').value;
-            renderTasks();
-        }
-
-        async function syncToSheets() {
-            try {
-                showStatus('☁️ שומר לענן...');
-                
-                const values = [['ID', 'Title', 'Category', 'Priority', 'Notes', 'Completed', 'ListName', 'CreatedAt']];
-                tasks.forEach(task => {
-                    values.push([
-                        task.id,
-                        task.title,
-                        task.category,
-                        task.priority,
-                        task.notes || '',
-                        task.completed,
-                        task.listName,
-                        task.createdAt
-                    ]);
-                });
-
-                await gapi.client.sheets.spreadsheets.values.update({
-                    spreadsheetId: SPREADSHEET_ID,
-                    range: 'Tasks!A1',
-                    valueInputOption: 'RAW',
-                    resource: { values: values }
-                });
-
-                showStatus('✅ נשמר בענן בהצלחה!');
-            } catch (error) {
-                console.error('Error syncing:', error);
-                showStatus('❌ שגיאה בשמירה לענן');
-            }
-        }
-
-        async function loadFromSheets() {
-            try {
-                showStatus('📥 טוען מהענן...');
-                
-                const response = await gapi.client.sheets.spreadsheets.values.get({
-                    spreadsheetId: SPREADSHEET_ID,
-                    range: 'Tasks!A1:H1000',
-                });
-
-                const rows = response.result.values;
-                if (rows && rows.length > 1) {
-                    tasks = [];
-                    for (let i = 1; i < rows.length; i++) {
-                        const row = rows[i];
-                        tasks.push({
-                            id: parseInt(row[0]),
-                            title: row[1],
-                            category: row[2],
-                            priority: row[3],
-                            notes: row[4] || '',
-                            completed: row[5] === 'TRUE' || row[5] === true,
-                            listName: row[6] || 'פרויקט מתמטיקה',
-                            createdAt: row[7]
-                        });
-                    }
-                    saveTasksToLocal();
-                    renderTasks();
-                    showStatus('✅ נטען מהענן בהצלחה!');
-                } else {
-                    showStatus('⚠️ אין נתונים בענן');
-                }
-            } catch (error) {
-                console.error('Error loading:', error);
-                showStatus('❌ שגיאה בטעינה מהענן');
-            }
-        }
-
-        // Initialize
-        window.onload = () => {
-            loadTasksFromLocal();
-        };
     </script>
-
-    <!-- Load Google APIs -->
-    <script async defer src="https://apis.google.com/js/api.js" onload="gapiLoaded()"></script>
-    <script async defer src="https://accounts.google.com/gsi/client" onload="gisLoaded()"></script>
 </body>
 </html>
