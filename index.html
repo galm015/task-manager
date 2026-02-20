@@ -44,6 +44,17 @@
             margin-bottom: 10px;
         }
 
+        .sync-date {
+            background: #f0fdf4;
+            border: 1px solid #86efac;
+            color: #166534;
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 13px;
+            margin-top: 10px;
+            display: inline-block;
+        }
+
         .btn {
             background: #667eea;
             color: white;
@@ -313,7 +324,8 @@
     <div class="container">
         <div class="header">
             <h1>📚 מנהל משימות אישי</h1>
-            <p style="color: #6b7280; margin-top: 10px;">ניהול משימות חכם עם סנכרון קבצים</p>
+            <p style="color: #6b7280; margin-top: 10px;">ניהול משימות חכם עם מיזוג אוטומטי</p>
+            <div id="lastSyncDate" class="sync-date hidden"></div>
         </div>
 
         <div id="statusMessage"></div>
@@ -326,12 +338,12 @@
                     📥 ייצא לקובץ
                 </button>
                 <label class="btn btn-orange" style="margin: 0; cursor: pointer;">
-                    📤 ייבא מקובץ
+                    📤 ייבא מקובץ (מיזוג חכם)
                     <input type="file" accept=".json" onchange="importData(event)" style="display: none;">
                 </label>
             </div>
             <p style="color: #6b7280; font-size: 14px; margin-top: 10px;">
-                💡 ייצא קובץ מהמחשב וייבא אותו בטלפון לסנכרון בין מכשירים
+                💡 הייבוא מזהה שינויים חדשים ומשלב אותם אוטומטית ללא מחיקת נתונים
             </p>
         </div>
 
@@ -370,6 +382,26 @@
             </div>
         </div>
 
+        <!-- Filter Section -->
+        <div class="filter-section">
+            <label style="font-weight: bold; display: block; margin-bottom: 10px;">🔍 סינון:</label>
+            <select id="filterCategory" onchange="renderTasks()">
+                <option value="הכל">כל הקטגוריות</option>
+                <option value="כללי">כללי</option>
+                <option value="עיצוב ממשק">עיצוב ממשק</option>
+                <option value="תכנים חינוכיים">תכנים חינוכיים</option>
+                <option value="פיצ'רים טכניים">פיצ'רים טכניים</option>
+                <option value="מערכת תשלום">מערכת תשלום</option>
+                <option value="חוויית משתמש">חוויית משתמש</option>
+                <option value="שיווק">שיווק</option>
+                <option value="בדיקות">בדיקות</option>
+                <option value="סוכן AI">סוכן AI</option>
+            </select>
+        </div>
+
+        <!-- Tasks List -->
+        <div id="tasksList"></div>
+
         <!-- Task Form -->
         <div class="task-form">
             <h2 style="margin-bottom: 15px;" id="formTitle">➕ משימה חדשה</h2>
@@ -401,23 +433,6 @@
             </div>
         </div>
 
-        <!-- Filter Section -->
-        <div class="filter-section">
-            <label style="font-weight: bold; display: block; margin-bottom: 10px;">🔍 סינון:</label>
-            <select id="filterCategory" onchange="renderTasks()">
-                <option value="הכל">כל הקטגוריות</option>
-                <option value="כללי">כללי</option>
-                <option value="עיצוב ממשק">עיצוב ממשק</option>
-                <option value="תכנים חינוכיים">תכנים חינוכיים</option>
-                <option value="פיצ'רים טכניים">פיצ'רים טכניים</option>
-                <option value="מערכת תשלום">מערכת תשלום</option>
-                <option value="חוויית משתמש">חוויית משתמש</option>
-                <option value="שיווק">שיווק</option>
-                <option value="בדיקות">בדיקות</option>
-                <option value="סוכן AI">סוכן AI</option>
-            </select>
-        </div>
-
         <!-- Notes Section -->
         <div class="notes-section">
             <h2 style="margin-bottom: 15px;">📝 הערות והדבקות</h2>
@@ -426,9 +441,6 @@
                 ההערות נשמרות אוטומטית ✓
             </p>
         </div>
-
-        <!-- Tasks List -->
-        <div id="tasksList"></div>
     </div>
 
     <script>
@@ -437,6 +449,7 @@
         let currentList = 'פרויקט מתמטיקה';
         let editingTaskId = null;
         let generalNotes = '';
+        let lastSyncDate = null;
 
         // Load data on startup
         window.onload = () => {
@@ -444,6 +457,7 @@
             renderTasks();
             updateListSelector();
             updateStats();
+            updateSyncDate();
         };
 
         function loadFromLocal() {
@@ -465,12 +479,26 @@
                 generalNotes = savedNotes;
                 document.getElementById('generalNotes').value = generalNotes;
             }
+
+            const savedSyncDate = localStorage.getItem('mathWebsiteLastSync');
+            if (savedSyncDate) {
+                lastSyncDate = savedSyncDate;
+            }
         }
 
         function saveToLocal() {
             localStorage.setItem('mathWebsiteTasks', JSON.stringify(tasks));
             localStorage.setItem('mathWebsiteLists', JSON.stringify(lists));
             localStorage.setItem('mathWebsiteNotes', generalNotes);
+        }
+
+        function updateSyncDate() {
+            const syncDateEl = document.getElementById('lastSyncDate');
+            if (lastSyncDate) {
+                const date = new Date(lastSyncDate);
+                syncDateEl.textContent = `📥 ייבוא אחרון: ${date.toLocaleDateString('he-IL')} ${date.toLocaleTimeString('he-IL', {hour: '2-digit', minute: '2-digit'})}`;
+                syncDateEl.classList.remove('hidden');
+            }
         }
 
         document.getElementById('generalNotes').addEventListener('input', (e) => {
@@ -492,7 +520,7 @@
                 lists,
                 notes: generalNotes,
                 exportDate: new Date().toISOString(),
-                version: '1.0'
+                version: '2.0'
             };
 
             const dataStr = JSON.stringify(dataToExport, null, 2);
@@ -519,23 +547,28 @@
                     const importedData = JSON.parse(e.target.result);
                     
                     if (importedData.tasks && importedData.lists) {
-                        const confirmImport = confirm(
-                            'האם אתה בטוח שברצונך לייבא נתונים? זה יחליף את כל הנתונים הנוכחיים!'
-                        );
+                        // Smart merge logic
+                        const merged = mergeData(importedData);
                         
-                        if (confirmImport) {
-                            tasks = importedData.tasks;
-                            lists = importedData.lists;
-                            generalNotes = importedData.notes || '';
-                            
-                            saveToLocal();
-                            updateListSelector();
-                            renderTasks();
-                            updateStats();
+                        tasks = merged.tasks;
+                        lists = merged.lists;
+                        
+                        // Merge notes - keep the longer one
+                        if (importedData.notes && importedData.notes.length > generalNotes.length) {
+                            generalNotes = importedData.notes;
                             document.getElementById('generalNotes').value = generalNotes;
-                            
-                            showStatus('✅ הנתונים יובאו בהצלחה!');
                         }
+                        
+                        lastSyncDate = new Date().toISOString();
+                        localStorage.setItem('mathWebsiteLastSync', lastSyncDate);
+                        
+                        saveToLocal();
+                        updateListSelector();
+                        renderTasks();
+                        updateStats();
+                        updateSyncDate();
+                        
+                        showStatus(`✅ המיזוג הושלם! נוספו ${merged.addedCount} משימות חדשות, עודכנו ${merged.updatedCount} משימות`);
                     } else {
                         showStatus('❌ קובץ לא תקין');
                     }
@@ -546,6 +579,50 @@
             };
             reader.readAsText(file);
             event.target.value = '';
+        }
+
+        function mergeData(importedData) {
+            // Create a map of existing tasks by ID
+            const existingTasksMap = new Map(tasks.map(t => [t.id, t]));
+            let addedCount = 0;
+            let updatedCount = 0;
+            
+            // Merge tasks
+            const mergedTasks = [...tasks];
+            
+            importedData.tasks.forEach(importedTask => {
+                const existingTask = existingTasksMap.get(importedTask.id);
+                
+                if (!existingTask) {
+                    // New task - add it
+                    mergedTasks.push(importedTask);
+                    addedCount++;
+                } else {
+                    // Task exists - check which is newer
+                    const importedDate = new Date(importedTask.createdAt || 0);
+                    const existingDate = new Date(existingTask.createdAt || 0);
+                    
+                    // Use the newer version, or if dates are equal, prefer completed status
+                    if (importedDate > existingDate || 
+                        (importedDate.getTime() === existingDate.getTime() && importedTask.completed !== existingTask.completed)) {
+                        const index = mergedTasks.findIndex(t => t.id === importedTask.id);
+                        if (index !== -1) {
+                            mergedTasks[index] = importedTask;
+                            updatedCount++;
+                        }
+                    }
+                }
+            });
+            
+            // Merge lists - combine both
+            const mergedLists = [...new Set([...lists, ...importedData.lists])];
+            
+            return {
+                tasks: mergedTasks,
+                lists: mergedLists,
+                addedCount,
+                updatedCount
+            };
         }
 
         function showNewListForm() {
@@ -676,7 +753,8 @@
             document.getElementById('saveBtn').textContent = '💾 שמור שינויים';
             document.getElementById('cancelBtn').classList.remove('hidden');
             
-            window.scrollTo({ top: 0, behavior: 'smooth' });
+            // Scroll to form at bottom
+            document.querySelector('.task-form').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
         }
 
         function cancelEdit() {
