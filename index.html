@@ -36,6 +36,19 @@
             padding: 25px;
             margin-bottom: 20px;
             box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            position: relative;
+        }
+
+        .header-content {
+            padding-left: 200px;
+        }
+
+        .header-actions {
+            position: absolute;
+            top: 25px;
+            left: 25px;
+            display: flex;
+            gap: 10px;
         }
 
         h1 {
@@ -110,11 +123,7 @@
         }
 
         .sync-section {
-            background: white;
-            border-radius: 15px;
-            padding: 20px;
-            margin-bottom: 20px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            display: none;
         }
 
         .sync-buttons {
@@ -305,6 +314,22 @@
                 font-size: 24px;
             }
 
+            .header-content {
+                padding-left: 0;
+                padding-top: 60px;
+            }
+
+            .header-actions {
+                position: static;
+                flex-direction: row;
+                margin-bottom: 15px;
+            }
+
+            .btn-small {
+                padding: 8px 12px;
+                font-size: 12px;
+            }
+
             .sync-buttons {
                 flex-direction: column;
             }
@@ -323,9 +348,20 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>📚 מנהל משימות אישי</h1>
-            <p style="color: #6b7280; margin-top: 10px;">ניהול משימות חכם עם מיזוג אוטומטי</p>
-            <div id="lastSyncDate" class="sync-date hidden"></div>
+            <div class="header-actions">
+                <button onclick="exportData()" class="btn btn-secondary btn-small" title="ייצא לקובץ">
+                    📥
+                </button>
+                <label class="btn btn-orange btn-small" style="margin: 0; cursor: pointer;" title="ייבא מקובץ">
+                    📤
+                    <input type="file" accept=".json" onchange="importData(event)" style="display: none;">
+                </label>
+            </div>
+            <div class="header-content">
+                <h1>📚 מנהל משימות אישי</h1>
+                <p style="color: #6b7280; margin-top: 10px;">ניהול משימות חכם עם מיזוג אוטומטי</p>
+                <div id="lastSyncDate" class="sync-date hidden"></div>
+            </div>
         </div>
 
         <div id="statusMessage"></div>
