@@ -455,7 +455,7 @@
     <div class="container">
         <div class="header">
             <div class="version-info">
-                <span class="version-number">v2.3.1</span>
+                <span class="version-number">v2.4.0</span>
                 <span class="version-date">21.02.2025</span>
             </div>
             <div class="header-actions">
@@ -538,14 +538,10 @@
                 <select id="filterCategory" onchange="renderTasks()" style="flex: 1;">
                     <option value="הכל">כל הקטגוריות</option>
                     <option value="כללי">כללי</option>
-                    <option value="עיצוב ממשק">עיצוב ממשק</option>
-                    <option value="תכנים חינוכיים">תכנים חינוכיים</option>
-                    <option value="פיצ'רים טכניים">פיצ'רים טכניים</option>
-                    <option value="מערכת תשלום">מערכת תשלום</option>
-                    <option value="חוויית משתמש">חוויית משתמש</option>
-                    <option value="שיווק">שיווק</option>
-                    <option value="בדיקות">בדיקות</option>
-                    <option value="סוכן AI">סוכן AI</option>
+                    <option value="רפואי">רפואי</option>
+                    <option value="בית">בית</option>
+                    <option value="משפחה">משפחה</option>
+                    <option value="טיולים">טיולים</option>
                 </select>
                 <select id="filterStatus" onchange="renderTasks()" style="flex: 1;">
                     <option value="active">רק פעילות</option>
@@ -566,14 +562,10 @@
             
             <select id="taskCategory">
                 <option value="כללי">כללי</option>
-                <option value="עיצוב ממשק">עיצוב ממשק</option>
-                <option value="תכנים חינוכיים">תכנים חינוכיים</option>
-                <option value="פיצ'רים טכניים">פיצ'רים טכניים</option>
-                <option value="מערכת תשלום">מערכת תשלום</option>
-                <option value="חוויית משתמש">חוויית משתמש</option>
-                <option value="שיווק">שיווק</option>
-                <option value="בדיקות">בדיקות</option>
-                <option value="סוכן AI">סוכן AI</option>
+                <option value="רפואי">רפואי</option>
+                <option value="בית">בית</option>
+                <option value="משפחה">משפחה</option>
+                <option value="טיולים">טיולים</option>
             </select>
 
             <select id="taskPriority">
@@ -602,14 +594,14 @@
 
     <script>
         // VERSION INFO
-        const APP_VERSION = '2.3.1';
+        const APP_VERSION = '2.4.0';
         const VERSION_DATE = '21.02.2025';
         
         let tasks = [];
         let lists = ['פרויקט מתמטיקה'];
         let currentList = 'פרויקט מתמטיקה';
         let editingTaskId = null;
-        let generalNotes = '';
+        let listNotes = {}; // Notes per list
         let lastSyncDate = null;
 
         // Load data on startup
@@ -621,8 +613,9 @@
                 deleted: task.deleted || false
             }));
             saveToLocal();
-            renderTasks();
             updateListSelector();
+            updateNotesTextarea();
+            renderTasks();
             updateStats();
             updateSyncDate();
         };
@@ -641,10 +634,15 @@
                 lists = JSON.parse(savedLists);
             }
 
-            const savedNotes = localStorage.getItem('mathWebsiteNotes');
+            const savedNotes = localStorage.getItem('mathWebsiteListNotes');
             if (savedNotes) {
-                generalNotes = savedNotes;
-                document.getElementById('generalNotes').value = generalNotes;
+                listNotes = JSON.parse(savedNotes);
+            } else {
+                // Migrate old single notes to first list
+                const oldNotes = localStorage.getItem('mathWebsiteNotes');
+                if (oldNotes) {
+                    listNotes = { [lists[0]]: oldNotes };
+                }
             }
 
             const savedSyncDate = localStorage.getItem('mathWebsiteLastSync');
@@ -656,7 +654,7 @@
         function saveToLocal() {
             localStorage.setItem('mathWebsiteTasks', JSON.stringify(tasks));
             localStorage.setItem('mathWebsiteLists', JSON.stringify(lists));
-            localStorage.setItem('mathWebsiteNotes', generalNotes);
+            localStorage.setItem('mathWebsiteListNotes', JSON.stringify(listNotes));
         }
 
         function updateSyncDate() {
@@ -668,8 +666,13 @@
             }
         }
 
+        function updateNotesTextarea() {
+            const notesEl = document.getElementById('generalNotes');
+            notesEl.value = listNotes[currentList] || '';
+        }
+
         document.getElementById('generalNotes').addEventListener('input', (e) => {
-            generalNotes = e.target.value;
+            listNotes[currentList] = e.target.value;
             saveToLocal();
         });
 
@@ -685,7 +688,7 @@
             const dataToExport = {
                 tasks,
                 lists,
-                notes: generalNotes,
+                listNotes,
                 exportDate: new Date().toISOString(),
                 version: APP_VERSION
             };
@@ -720,10 +723,14 @@
                         tasks = merged.tasks;
                         lists = merged.lists;
                         
-                        // Merge notes - keep the longer one
-                        if (importedData.notes && importedData.notes.length > generalNotes.length) {
-                            generalNotes = importedData.notes;
-                            document.getElementById('generalNotes').value = generalNotes;
+                        // Merge notes per list
+                        if (importedData.listNotes) {
+                            listNotes = { ...listNotes, ...importedData.listNotes };
+                        } else if (importedData.notes) {
+                            // Backward compatibility: old single notes
+                            if (!listNotes[lists[0]]) {
+                                listNotes[lists[0]] = importedData.notes;
+                            }
                         }
                         
                         lastSyncDate = new Date().toISOString();
@@ -731,6 +738,7 @@
                         
                         saveToLocal();
                         updateListSelector();
+                        updateNotesTextarea();
                         renderTasks();
                         updateStats();
                         updateSyncDate();
@@ -824,8 +832,10 @@
             
             lists.push(name);
             currentList = name;
+            listNotes[name] = ''; // Initialize empty notes for new list
             saveToLocal();
             updateListSelector();
+            updateNotesTextarea();
             hideNewListForm();
             renderTasks();
             showStatus('✅ הרשימה נוצרה בהצלחה');
@@ -853,17 +863,24 @@
                 }
             }
 
+            const listToDelete = currentList;
             lists = lists.filter(l => l !== currentList);
+            
             // Mark all tasks in this list as deleted (not permanent delete)
             tasks.forEach(task => {
                 if (task.listName === currentList) {
                     task.deleted = true;
                 }
             });
+            
+            // Delete notes for this list
+            delete listNotes[listToDelete];
+            
             currentList = lists[0];
             
             saveToLocal();
             updateListSelector();
+            updateNotesTextarea();
             hideDeleteListConfirm();
             renderTasks();
             showStatus('✅ הרשימה נמחקה והמשימות הועברו לנמחקות');
@@ -878,6 +895,7 @@
 
         function loadTasks() {
             currentList = document.getElementById('listSelector').value;
+            updateNotesTextarea();
             renderTasks();
             updateStats();
         }
