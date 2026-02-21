@@ -1328,6 +1328,7 @@
                     <button onclick="toggleTask(${task.id}, event)" class="btn btn-small btn-secondary">
                         ${task.completed ? '↩️' : '✓'}
                     </button>
+                    <button onclick="sendToWhatsApp(${task.id}, event)" class="btn btn-small btn-whatsapp" title="שלח תזכורת בוואטסאפ">📱</button>
                     <button onclick="deleteTask(${task.id}, event)" class="btn btn-small btn-delete">🗑️</button>
                 `;
             }
