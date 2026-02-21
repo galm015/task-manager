@@ -85,6 +85,14 @@
             font-size: 20px;
         }
 
+        .btn-add-task {
+            background: #8b5cf6;
+        }
+
+        .btn-add-task:hover {
+            background: #7c3aed;
+        }
+
         h1 {
             color: #667eea;
             font-size: 28px;
@@ -455,10 +463,13 @@
     <div class="container">
         <div class="header">
             <div class="version-info">
-                <span class="version-number">v2.4.0</span>
+                <span class="version-number">v2.4.1</span>
                 <span class="version-date">21.02.2025</span>
             </div>
             <div class="header-actions">
+                <button onclick="scrollToAddTask()" class="btn btn-add-task btn-icon" title="הוסף משימה">
+                    ➕
+                </button>
                 <button onclick="exportData()" class="btn btn-secondary btn-icon" title="ייצא לקובץ">
                     📥
                 </button>
@@ -594,7 +605,7 @@
 
     <script>
         // VERSION INFO
-        const APP_VERSION = '2.4.0';
+        const APP_VERSION = '2.4.1';
         const VERSION_DATE = '21.02.2025';
         
         let tasks = [];
@@ -682,6 +693,20 @@
             setTimeout(() => {
                 statusDiv.innerHTML = '';
             }, 3000);
+        }
+
+        function scrollToAddTask() {
+            // Cancel any existing edit
+            cancelEdit();
+            
+            // Scroll to task form
+            const taskForm = document.querySelector('.task-form');
+            taskForm.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            
+            // Focus on the task title input
+            setTimeout(() => {
+                document.getElementById('taskTitle').focus();
+            }, 500);
         }
 
         function exportData() {
