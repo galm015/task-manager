@@ -455,7 +455,7 @@
     <div class="container">
         <div class="header">
             <div class="version-info">
-                <span class="version-number">v2.3.0</span>
+                <span class="version-number">v2.3.1</span>
                 <span class="version-date">21.02.2025</span>
             </div>
             <div class="header-actions">
@@ -602,7 +602,7 @@
 
     <script>
         // VERSION INFO
-        const APP_VERSION = '2.3.0';
+        const APP_VERSION = '2.3.1';
         const VERSION_DATE = '21.02.2025';
         
         let tasks = [];
@@ -761,20 +761,30 @@
                 const existingTask = existingTasksMap.get(importedTask.id);
                 
                 if (!existingTask) {
-                    // New task - add it
-                    mergedTasks.push(importedTask);
+                    // New task - add it (including deleted tasks)
+                    mergedTasks.push({
+                        ...importedTask,
+                        deleted: importedTask.deleted || false
+                    });
                     addedCount++;
                 } else {
-                    // Task exists - check which is newer
+                    // Task exists - check which is newer or has different status
                     const importedDate = new Date(importedTask.createdAt || 0);
                     const existingDate = new Date(existingTask.createdAt || 0);
                     
-                    // Use the newer version, or if dates are equal, prefer completed status
-                    if (importedDate > existingDate || 
-                        (importedDate.getTime() === existingDate.getTime() && importedTask.completed !== existingTask.completed)) {
+                    // If deleted status differs, use the one that's deleted (preserve deletions)
+                    const shouldUpdate = 
+                        importedTask.deleted !== existingTask.deleted ||
+                        importedTask.completed !== existingTask.completed ||
+                        importedDate > existingDate;
+                    
+                    if (shouldUpdate) {
                         const index = mergedTasks.findIndex(t => t.id === importedTask.id);
                         if (index !== -1) {
-                            mergedTasks[index] = importedTask;
+                            mergedTasks[index] = {
+                                ...importedTask,
+                                deleted: importedTask.deleted || false
+                            };
                             updatedCount++;
                         }
                     }
@@ -834,24 +844,29 @@
         }
 
         function deleteList() {
-            const tasksInList = tasks.filter(t => t.listName === currentList);
+            const tasksInList = tasks.filter(t => t.listName === currentList && !t.deleted);
             
             if (tasksInList.length > 0) {
-                if (!confirm(`הרשימה "${currentList}" מכילה ${tasksInList.length} משימות. האם אתה בטוח?`)) {
+                if (!confirm(`הרשימה "${currentList}" מכילה ${tasksInList.length} משימות פעילות. האם אתה בטוח?`)) {
                     hideDeleteListConfirm();
                     return;
                 }
             }
 
             lists = lists.filter(l => l !== currentList);
-            tasks = tasks.filter(t => t.listName !== currentList);
+            // Mark all tasks in this list as deleted (not permanent delete)
+            tasks.forEach(task => {
+                if (task.listName === currentList) {
+                    task.deleted = true;
+                }
+            });
             currentList = lists[0];
             
             saveToLocal();
             updateListSelector();
             hideDeleteListConfirm();
             renderTasks();
-            showStatus('✅ הרשימה נמחקה');
+            showStatus('✅ הרשימה נמחקה והמשימות הועברו לנמחקות');
         }
 
         function updateListSelector() {
