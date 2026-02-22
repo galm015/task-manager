@@ -561,8 +561,8 @@
     <div class="container">
         <div class="header">
             <div class="version-info">
-                <span class="version-number">v2.5.0</span>
-                <span class="version-date">21.02.2025</span>
+                <span class="version-number">v2.7.0</span>
+                <span class="version-date">22.02.2026</span>
             </div>
             <div class="header-actions">
                 <button onclick="scrollToAddTask()" class="btn btn-add-task btn-icon" title="הוסף משימה">
@@ -610,6 +610,20 @@
                     </p>
                 </div>
 
+                <div class="settings-group">
+                    <label class="settings-label">🔗 Google Apps Script URL</label>
+                    <input 
+                        type="url" 
+                        id="gasUrl" 
+                        class="settings-input" 
+                        placeholder="https://script.google.com/macros/s/..."
+                        dir="ltr"
+                    >
+                    <p class="settings-hint">
+                        הדבק כאן את ה-URL לאחר פרסום ה-Apps Script
+                    </p>
+                </div>
+
                 <button onclick="saveSettings()" class="btn" style="width: 100%;">
                     💾 שמור הגדרות
                 </button>
@@ -618,6 +632,32 @@
 
         <!-- Tasks List (Active) -->
         <div id="tasksList"></div>
+
+        <!-- Reminder Modal -->
+        <div id="reminderModal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2 style="color: #25d366; margin: 0;">📱 תזכורת WhatsApp</h2>
+                    <button onclick="closeReminderModal()" class="modal-close">✕</button>
+                </div>
+                <input type="hidden" id="reminderTaskId">
+                <p style="color: #374151; margin-bottom: 15px;">
+                    משימה: <strong id="reminderTaskTitle"></strong>
+                </p>
+                <div class="settings-group">
+                    <label class="settings-label">⏰ מתי לשלוח?</label>
+                    <input type="datetime-local" id="reminderTime" class="settings-input" dir="ltr">
+                </div>
+                <div style="display: flex; gap: 10px; margin-top: 10px;">
+                    <button onclick="sendReminder(false)" class="btn btn-whatsapp" style="flex: 1;">
+                        ⏰ תזמן שליחה
+                    </button>
+                    <button onclick="sendReminder(true)" class="btn btn-secondary" style="flex: 1;">
+                        📤 שלח עכשיו
+                    </button>
+                </div>
+            </div>
+        </div>
 
         <!-- Sync Section -->
         <div class="sync-section">
@@ -641,7 +681,7 @@
             <label style="font-weight: bold; display: block; margin-bottom: 10px;">📋 בחר רשימה:</label>
             <div class="list-control">
                 <select id="listSelector" onchange="loadTasks()" style="flex: 1;">
-                    <option value="פרויקט מתמטיקה">פרויקט מתמטיקה</option>
+                    <option value="כללי">כללי</option>
                 </select>
                 <button onclick="showDeleteListConfirm()" class="btn btn-delete btn-small">🗑️</button>
             </div>
@@ -734,16 +774,17 @@
 
     <script>
         // VERSION INFO
-        const APP_VERSION = '2.5.0';
-        const VERSION_DATE = '21.02.2025';
+        const APP_VERSION = '2.7.0';
+        const VERSION_DATE = '22.02.2026';
         
         let tasks = [];
-        let lists = ['פרויקט מתמטיקה'];
-        let currentList = 'פרויקט מתמטיקה';
+        let lists = ['כללי'];
+        let currentList = 'כללי';
         let editingTaskId = null;
         let listNotes = {}; // Notes per list
         let lastSyncDate = null;
         let userPhone = ''; // User's phone number for WhatsApp
+        let gasUrl = ''; // Google Apps Script URL
 
         // Load data on startup
         window.onload = () => {
@@ -766,7 +807,7 @@
             if (savedTasks) {
                 tasks = JSON.parse(savedTasks).map(task => ({
                     ...task,
-                    listName: task.listName || 'פרויקט מתמטיקה'
+                    listName: task.listName || 'כללי'
                 }));
             }
 
@@ -782,8 +823,7 @@
                 // Migrate old single notes to first list
                 const oldNotes = localStorage.getItem('mathWebsiteNotes');
                 if (oldNotes) {
-                    listNotes = { [lists[0]]: oldNotes };
-                }
+                    listNotes = { [lists[0]]: oldNotes };                }
             }
 
             const savedSyncDate = localStorage.getItem('mathWebsiteLastSync');
@@ -794,6 +834,11 @@
             const savedPhone = localStorage.getItem('mathWebsiteUserPhone');
             if (savedPhone) {
                 userPhone = savedPhone;
+            }
+
+            const savedGasUrl = localStorage.getItem('mathWebsiteGasUrl');
+            if (savedGasUrl) {
+                gasUrl = savedGasUrl;
             }
         }
 
@@ -846,6 +891,7 @@
 
         function openSettings() {
             document.getElementById('phoneNumber').value = userPhone;
+            document.getElementById('gasUrl').value = gasUrl;
             document.getElementById('settingsModal').classList.add('active');
         }
 
@@ -857,6 +903,11 @@
             const phone = document.getElementById('phoneNumber').value.trim();
             userPhone = phone;
             localStorage.setItem('mathWebsiteUserPhone', phone);
+            
+            const gas = document.getElementById('gasUrl').value.trim();
+            gasUrl = gas;
+            localStorage.setItem('mathWebsiteGasUrl', gas);
+            
             closeSettings();
             showStatus('✅ ההגדרות נשמרו בהצלחה');
         }
@@ -864,33 +915,73 @@
         function sendToWhatsApp(taskId, event) {
             event.stopPropagation();
             
-            // Check if phone number is set
-            if (!userPhone) {
-                if (confirm('לא הוגדר מספר טלפון. האם תרצה להגדיר עכשיו?')) {
-                    openSettings();
-                }
-                return;
-            }
-
             const task = tasks.find(t => t.id === taskId);
             if (!task) return;
 
-            // Build WhatsApp message
-            let message = `🔔 תזכורת: ${task.title}`;
-            
-            if (task.notes) {
-                message += `\n\n📝 ${task.notes}`;
+            // אם יש GAS URL — פתח modal לתזמון
+            if (gasUrl) {
+                openReminderModal(task);
+            } else {
+                // fallback — שלח ישירות דרך wa.me
+                const message = `🔔 תזכורת: ${task.title}${task.notes ? '\n\n📝 ' + task.notes : ''}\n\n📋 קטגוריה: ${task.category}\n⚡ עדיפות: ${task.priority}`;
+                const encoded = encodeURIComponent(message);
+                window.open(`https://wa.me/${userPhone}?text=${encoded}`, '_blank');
             }
-            
-            message += `\n\n📋 קטגוריה: ${task.category}`;
-            message += `\n⚡ עדיפות: ${task.priority}`;
+        }
 
-            // Encode message for URL
-            const encodedMessage = encodeURIComponent(message);
+        function openReminderModal(task) {
+            // הגדר זמן ברירת מחדל — שעה מעכשיו
+            const defaultTime = new Date(Date.now() + 60 * 60 * 1000);
+            const pad = n => String(n).padStart(2, '0');
+            const defaultStr = `${defaultTime.getFullYear()}-${pad(defaultTime.getMonth()+1)}-${pad(defaultTime.getDate())}T${pad(defaultTime.getHours())}:${pad(defaultTime.getMinutes())}`;
             
-            // Open WhatsApp with pre-filled message
-            const whatsappUrl = `https://wa.me/${userPhone}?text=${encodedMessage}`;
-            window.open(whatsappUrl, '_blank');
+            document.getElementById('reminderTaskId').value = task.id;
+            document.getElementById('reminderTaskTitle').textContent = task.title;
+            document.getElementById('reminderTime').value = defaultStr;
+            document.getElementById('reminderModal').classList.add('active');
+        }
+
+        function closeReminderModal() {
+            document.getElementById('reminderModal').classList.remove('active');
+        }
+
+        async function sendReminder(sendNow) {
+            const taskId = parseInt(document.getElementById('reminderTaskId').value);
+            const task = tasks.find(t => t.id === taskId);
+            if (!task) return;
+
+            const scheduledTime = sendNow 
+                ? new Date().toISOString()
+                : new Date(document.getElementById('reminderTime').value).toISOString();
+
+            const payload = {
+                action: sendNow ? 'send_now' : 'schedule',
+                taskId: task.id,
+                taskTitle: task.title,
+                taskNotes: task.notes || '',
+                taskCategory: task.category,
+                taskPriority: task.priority,
+                scheduledTime
+            };
+
+            try {
+                showStatus('⏳ שולח לשרת...');
+                const response = await fetch(gasUrl, {
+                    method: 'POST',
+                    body: JSON.stringify(payload)
+                });
+                const result = await response.json();
+                
+                closeReminderModal();
+                if (result.success) {
+                    showStatus(sendNow ? '✅ התזכורת נשלחה!' : `✅ ${result.message}`);
+                } else {
+                    showStatus('❌ שגיאה: ' + (result.error || 'נסה שוב'));
+                }
+            } catch (err) {
+                showStatus('❌ שגיאת חיבור לשרת');
+                console.error(err);
+            }
         }
 
         function exportData() {
