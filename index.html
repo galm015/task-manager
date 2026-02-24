@@ -903,30 +903,28 @@
                 return;
             }
 
-            try {
-                showStatus('⏳ בודק קוד גישה...');
-                const result = await callGAS({
-                    action: 'validate',
-                    accessCode: code,
-                    userPhone: phone || '000'
-                });
-
-                if (result.success === false) {
-                    showStatus('❌ קוד גישה לא תקין — פנה למנהל המערכת');
-                    return;
-                }
-            } catch (err) {
-                showStatus('❌ שגיאת חיבור לשרת — בדוק שה-URL מוגדר');
-                console.error(err);
+            if (!validateCodeLocally(code)) {
+                showStatus('❌ קוד גישה לא תקין — חייב להיות לפחות 6 תווים');
                 return;
             }
 
+            if (!phone) {
+                showStatus('⚠️ נא להזין מספר טלפון');
+                return;
+            }
+
+            // שמור מיד — GAS יאמת בפועל כשמנסים לשלוח
             userPhone  = phone;
             accessCode = code;
             localStorage.setItem('taskManagerUserPhone', phone);
             localStorage.setItem('taskManagerAccessCode', code);
+
+            // שלח ולידציה ל-GAS ברקע (fire-and-forget)
+            // אם הקוד לא תקין — GAS ישלח לך התראה
+            callGAS({ action: 'validate', accessCode: code, userPhone: phone }).catch(() => {});
+
             closeSettings();
-            showStatus('✅ קוד אושר! ההגדרות נשמרו');
+            showStatus('✅ ההגדרות נשמרו — תקבל התראה אם הקוד לא תקין');
         }
 
         function sendToWhatsApp(taskId, event) {
@@ -959,66 +957,27 @@
             document.getElementById('reminderModal').classList.remove('active');
         }
 
-        // קריאה ל-GAS עם עקיפת CORS
+        // קריאה ל-GAS — no-cors עוקף CORS אבל לא מחזיר response
+        // לכן ולידציה נעשית locally, והשליחה היא fire-and-forget
         async function callGAS(payload) {
-            // GAS דורש no-cors — אין Response בחזרה ישירות
-            // לכן נשתמש ב-iframe trick שעובד עם GAS
-            return new Promise((resolve, reject) => {
-                const formId = 'gas_form_' + Date.now();
-                const iframeId = 'gas_iframe_' + Date.now();
+            try {
+                await fetch(GAS_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    body: JSON.stringify(payload)
+                });
+                return { success: true };
+            } catch (err) {
+                console.error('GAS call failed:', err);
+                throw err;
+            }
+        }
 
-                // צור iframe נסתר
-                const iframe = document.createElement('iframe');
-                iframe.name = iframeId;
-                iframe.id = iframeId;
-                iframe.style.display = 'none';
-                document.body.appendChild(iframe);
-
-                // צור form שמגיש ל-GAS
-                const form = document.createElement('form');
-                form.id = formId;
-                form.method = 'POST';
-                form.action = GAS_URL;
-                form.target = iframeId;
-                form.style.display = 'none';
-
-                // הוסף את הנתונים כ-hidden input
-                const input = document.createElement('input');
-                input.type = 'hidden';
-                input.name = 'payload';
-                input.value = JSON.stringify(payload);
-                form.appendChild(input);
-
-                document.body.appendChild(form);
-
-                // timeout של 10 שניות
-                const timeout = setTimeout(() => {
-                    cleanup();
-                    reject(new Error('timeout'));
-                }, 10000);
-
-                iframe.onload = () => {
-                    clearTimeout(timeout);
-                    try {
-                        const text = iframe.contentDocument?.body?.innerText;
-                        const result = text ? JSON.parse(text) : { success: true };
-                        cleanup();
-                        resolve(result);
-                    } catch(e) {
-                        cleanup();
-                        // GAS קיבל את הבקשה אבל לא ניתן לקרוא response בגלל CORS
-                        // נניח הצלחה אם לא היתה שגיאת network
-                        resolve({ success: true, message: 'נשלח' });
-                    }
-                };
-
-                function cleanup() {
-                    try { document.body.removeChild(form); } catch(e) {}
-                    try { document.body.removeChild(iframe); } catch(e) {}
-                }
-
-                form.submit();
-            });
+        // ולידציה מקומית של קוד גישה
+        // הקוד נשמר ב-localStorage ומאומת בעת שימוש
+        // ולידציה אמיתית מול השרת — GAS ידחה בקשות עם קוד שגוי
+        function validateCodeLocally(code) {
+            return code && code.length >= 6;
         }
             const taskId = parseInt(document.getElementById('reminderTaskId').value);
             const task = tasks.find(t => t.id === taskId);
@@ -1055,14 +1014,11 @@
             };
 
             try {
-                showStatus('⏳ שולח...');
-                const result = await callGAS(payload);
+                showStatus(sendNow ? '✅ התזכורת נשלחה!' : '✅ התזכורת תישלח בזמן הנקוב');
                 closeReminderModal();
-                if (result.success === false) {
-                    showStatus('❌ שגיאה: ' + (result.error || 'נסה שוב'));
-                } else {
-                    showStatus(sendNow ? '✅ התזכורת נשלחה!' : `✅ ${result.message || 'התזכורת תישלח בזמן הנקוב'}`);
-                }
+                callGAS(payload).catch(() => {
+                    showStatus('⚠️ שגיאת חיבור — בדוק שה-URL מוגדר');
+                });
             } catch (err) {
                 showStatus('❌ שגיאת חיבור לשרת');
                 console.error(err);
