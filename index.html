@@ -561,8 +561,8 @@
     <div class="container">
         <div class="header">
             <div class="version-info">
-                <span class="version-number">v2.7.0</span>
-                <span class="version-date">22.02.2026</span>
+                <span class="version-number">v2.8.0</span>
+                <span class="version-date">24.02.2026</span>
             </div>
             <div class="header-actions">
                 <button onclick="scrollToAddTask()" class="btn btn-add-task btn-icon" title="הוסף משימה">
@@ -597,6 +597,19 @@
                 </div>
                 
                 <div class="settings-group">
+                    <label class="settings-label">🔑 קוד גישה</label>
+                    <input 
+                        type="text" 
+                        id="accessCode" 
+                        class="settings-input" 
+                        placeholder="הכנס קוד גישה שקיבלת"
+                        dir="ltr"
+                        maxlength="20"
+                    >
+                    <p class="settings-hint">קוד גישה אישי שקיבלת מהמנהל</p>
+                </div>
+
+                <div class="settings-group">
                     <label class="settings-label">📱 מספר טלפון לתזכורות WhatsApp</label>
                     <input 
                         type="tel" 
@@ -605,23 +618,7 @@
                         placeholder="972501234567"
                         dir="ltr"
                     >
-                    <p class="settings-hint">
-                        הזן מספר עם קידומת מדינה ללא + (למשל: 972501234567 לישראל)
-                    </p>
-                </div>
-
-                <div class="settings-group">
-                    <label class="settings-label">🔗 Google Apps Script URL</label>
-                    <input 
-                        type="url" 
-                        id="gasUrl" 
-                        class="settings-input" 
-                        placeholder="https://script.google.com/macros/s/..."
-                        dir="ltr"
-                    >
-                    <p class="settings-hint">
-                        הדבק כאן את ה-URL לאחר פרסום ה-Apps Script
-                    </p>
+                    <p class="settings-hint">מספר עם קידומת מדינה ללא + (ישראל: 972XXXXXXXXX)</p>
                 </div>
 
                 <button onclick="saveSettings()" class="btn" style="width: 100%;">
@@ -774,8 +771,8 @@
 
     <script>
         // VERSION INFO
-        const APP_VERSION = '2.7.0';
-        const VERSION_DATE = '22.02.2026';
+        const APP_VERSION = '2.8.0';
+        const VERSION_DATE = '24.02.2026';
         
         let tasks = [];
         let lists = ['כללי'];
@@ -783,8 +780,10 @@
         let editingTaskId = null;
         let listNotes = {}; // Notes per list
         let lastSyncDate = null;
-        let userPhone = ''; // User's phone number for WhatsApp
-        let gasUrl = ''; // Google Apps Script URL
+        let userPhone = '';
+        let accessCode = '';
+        // ← הכנס כאן את ה-URL שלך אחרי פרסום ב-Google Apps Script
+        const GAS_URL = 'https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec';
 
         // Load data on startup
         window.onload = () => {
@@ -831,15 +830,11 @@
                 lastSyncDate = savedSyncDate;
             }
 
-            const savedPhone = localStorage.getItem('mathWebsiteUserPhone');
-            if (savedPhone) {
-                userPhone = savedPhone;
-            }
+            const savedPhone = localStorage.getItem('taskManagerUserPhone');
+            if (savedPhone) userPhone = savedPhone;
 
-            const savedGasUrl = localStorage.getItem('mathWebsiteGasUrl');
-            if (savedGasUrl) {
-                gasUrl = savedGasUrl;
-            }
+            const savedCode = localStorage.getItem('taskManagerAccessCode');
+            if (savedCode) accessCode = savedCode;
         }
 
         function saveToLocal() {
@@ -891,7 +886,7 @@
 
         function openSettings() {
             document.getElementById('phoneNumber').value = userPhone;
-            document.getElementById('gasUrl').value = gasUrl;
+            document.getElementById('accessCode').value = accessCode;
             document.getElementById('settingsModal').classList.add('active');
         }
 
@@ -899,34 +894,53 @@
             document.getElementById('settingsModal').classList.remove('active');
         }
 
-        function saveSettings() {
+        async function saveSettings() {
             const phone = document.getElementById('phoneNumber').value.trim();
-            userPhone = phone;
-            localStorage.setItem('mathWebsiteUserPhone', phone);
-            
-            const gas = document.getElementById('gasUrl').value.trim();
-            gasUrl = gas;
-            localStorage.setItem('mathWebsiteGasUrl', gas);
-            
+            const code  = document.getElementById('accessCode').value.trim();
+
+            if (!code) {
+                showStatus('⚠️ נא להזין קוד גישה');
+                return;
+            }
+
+            // ולידציה מול השרת
+            try {
+                showStatus('⏳ בודק קוד גישה...');
+                const response = await fetch(GAS_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({ action: 'validate', accessCode: code, userPhone: phone || '000' })
+                });
+                const result = await response.json();
+
+                if (!result.success) {
+                    showStatus('❌ קוד גישה לא תקין — פנה למנהל המערכת');
+                    return;
+                }
+            } catch (err) {
+                showStatus('❌ שגיאת חיבור לשרת');
+                return;
+            }
+
+            userPhone  = phone;
+            accessCode = code;
+            localStorage.setItem('taskManagerUserPhone', phone);
+            localStorage.setItem('taskManagerAccessCode', code);
             closeSettings();
             showStatus('✅ ההגדרות נשמרו בהצלחה');
         }
 
         function sendToWhatsApp(taskId, event) {
             event.stopPropagation();
-            
             const task = tasks.find(t => t.id === taskId);
             if (!task) return;
 
-            // אם יש GAS URL — פתח modal לתזמון
-            if (gasUrl) {
-                openReminderModal(task);
-            } else {
-                // fallback — שלח ישירות דרך wa.me
-                const message = `🔔 תזכורת: ${task.title}${task.notes ? '\n\n📝 ' + task.notes : ''}\n\n📋 קטגוריה: ${task.category}\n⚡ עדיפות: ${task.priority}`;
-                const encoded = encodeURIComponent(message);
-                window.open(`https://wa.me/${userPhone}?text=${encoded}`, '_blank');
+            if (!userPhone) {
+                openSettings();
+                showStatus('⚠️ נא להגדיר מספר טלפון תחילה');
+                return;
             }
+
+            openReminderModal(task);
         }
 
         function openReminderModal(task) {
@@ -950,7 +964,21 @@
             const task = tasks.find(t => t.id === taskId);
             if (!task) return;
 
-            const scheduledTime = sendNow 
+            if (!accessCode) {
+                closeReminderModal();
+                openSettings();
+                showStatus('⚠️ נא להגדיר קוד גישה תחילה');
+                return;
+            }
+
+            if (!userPhone) {
+                closeReminderModal();
+                openSettings();
+                showStatus('⚠️ נא להגדיר מספר טלפון תחילה');
+                return;
+            }
+
+            const scheduledTime = sendNow
                 ? new Date().toISOString()
                 : new Date(document.getElementById('reminderTime').value).toISOString();
 
@@ -961,17 +989,18 @@
                 taskNotes: task.notes || '',
                 taskCategory: task.category,
                 taskPriority: task.priority,
-                scheduledTime
+                scheduledTime,
+                userPhone,
+                accessCode
             };
 
             try {
-                showStatus('⏳ שולח לשרת...');
-                const response = await fetch(gasUrl, {
+                showStatus('⏳ שולח...');
+                const response = await fetch(GAS_URL, {
                     method: 'POST',
                     body: JSON.stringify(payload)
                 });
                 const result = await response.json();
-                
                 closeReminderModal();
                 if (result.success) {
                     showStatus(sendNow ? '✅ התזכורת נשלחה!' : `✅ ${result.message}`);
