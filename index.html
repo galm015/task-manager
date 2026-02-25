@@ -561,7 +561,7 @@
     <div class="container">
         <div class="header">
             <div class="version-info">
-                <span class="version-number">v2.9.0</span>
+                <span class="version-number">v2.9.1</span>
                 <span class="version-date">24.02.2026</span>
             </div>
             <div class="header-actions">
@@ -771,7 +771,7 @@
 
     <script>
         // VERSION INFO
-        const APP_VERSION = '2.9.0';
+        const APP_VERSION = '2.9.1';
         const VERSION_DATE = '24.02.2026';
         
         let tasks = [];
@@ -802,7 +802,8 @@
         };
 
         function loadFromLocal() {
-            const savedTasks = localStorage.getItem('mathWebsiteTasks');
+            // תמיכה גם במפתחות ישנים (mathWebsite) וגם חדשים (taskManager)
+            const savedTasks = localStorage.getItem('taskManagerTasks') || localStorage.getItem('mathWebsiteTasks');
             if (savedTasks) {
                 tasks = JSON.parse(savedTasks).map(task => ({
                     ...task,
@@ -810,22 +811,22 @@
                 }));
             }
 
-            const savedLists = localStorage.getItem('mathWebsiteLists');
+            const savedLists = localStorage.getItem('taskManagerLists') || localStorage.getItem('mathWebsiteLists');
             if (savedLists) {
                 lists = JSON.parse(savedLists);
             }
 
-            const savedNotes = localStorage.getItem('mathWebsiteListNotes');
+            const savedNotes = localStorage.getItem('taskManagerListNotes') || localStorage.getItem('mathWebsiteListNotes');
             if (savedNotes) {
                 listNotes = JSON.parse(savedNotes);
             } else {
-                // Migrate old single notes to first list
                 const oldNotes = localStorage.getItem('mathWebsiteNotes');
                 if (oldNotes) {
-                    listNotes = { [lists[0]]: oldNotes };                }
+                    listNotes = { [lists[0]]: oldNotes };
+                }
             }
 
-            const savedSyncDate = localStorage.getItem('mathWebsiteLastSync');
+            const savedSyncDate = localStorage.getItem('taskManagerLastSync') || localStorage.getItem('mathWebsiteLastSync');
             if (savedSyncDate) {
                 lastSyncDate = savedSyncDate;
             }
@@ -838,9 +839,9 @@
         }
 
         function saveToLocal() {
-            localStorage.setItem('mathWebsiteTasks', JSON.stringify(tasks));
-            localStorage.setItem('mathWebsiteLists', JSON.stringify(lists));
-            localStorage.setItem('mathWebsiteListNotes', JSON.stringify(listNotes));
+            localStorage.setItem('taskManagerTasks', JSON.stringify(tasks));
+            localStorage.setItem('taskManagerLists', JSON.stringify(lists));
+            localStorage.setItem('taskManagerListNotes', JSON.stringify(listNotes));
         }
 
         function updateSyncDate() {
@@ -1075,7 +1076,7 @@
                         }
                         
                         lastSyncDate = new Date().toISOString();
-                        localStorage.setItem('mathWebsiteLastSync', lastSyncDate);
+                        localStorage.setItem('taskManagerLastSync', lastSyncDate);
                         
                         saveToLocal();
                         updateListSelector();
