@@ -565,7 +565,7 @@
     <div class="container">
         <div class="header">
             <div class="version-info">
-                <span class="version-number">v2.9.4</span>
+                <span class="version-number">v2.9.5</span>
                 <span class="version-date">26.02.2026</span>
             </div>
             <div class="header-actions">
@@ -575,10 +575,9 @@
                 <button onclick="exportData()" class="btn btn-secondary btn-icon" title="ייצא לקובץ">
                     📥
                 </button>
-                <label class="btn btn-orange btn-icon" style="margin: 0; cursor: pointer;" title="ייבא מקובץ">
+                <button onclick="triggerImport()" class="btn btn-orange btn-icon" title="ייבא מקובץ">
                     📤
-                    <input type="file" id="importFileInput" accept=".json" style="position: absolute; left: -9999px; opacity: 0;" onchange="importData(event)">
-                </label>
+                </button>
                 <button onclick="openSettings()" class="btn btn-settings btn-icon" title="הגדרות">
                     ⚙️
                 </button>
@@ -668,10 +667,9 @@
             <button onclick="exportData()" class="btn btn-secondary">
                 📥 ייצא לקובץ
             </button>
-            <label class="btn btn-orange" style="margin: 0; cursor: pointer;">
+            <button onclick="triggerImport()" class="btn btn-orange" style="cursor: pointer;">
                 📤 ייבא מקובץ (מיזוג חכם)
-                <input type="file" accept=".json" style="position: absolute; left: -9999px; opacity: 0;" onchange="importData(event)">
-            </label>
+            </button>
         </div>
         <p style="color: #6b7280; font-size: 14px; margin-top: 10px;">
             💡 הייבוא מזהה שינויים חדשים ומשלב אותם אוטומטית ללא מחיקת נתונים
@@ -776,7 +774,7 @@
 
 <script>
     // VERSION INFO
-    const APP_VERSION = '2.9.4';
+    const APP_VERSION = '2.9.5';
     const VERSION_DATE = '26.02.2026';
     
     let tasks = [];
@@ -790,7 +788,7 @@
     // ← הכנס כאן את ה-URL שלך אחרי פרסום ב-Google Apps Script
     const GAS_URL = 'https://script.google.com/macros/s/AKfycbzjZ-EXwOGX8xie5khRm0T9_NimTJDNONcY_94pYpNG6ToLYQkCsSqtnOVfPl1Cwcum/exec';
 
-    // Load data on startup
+    //Load data on startup
     window.onload = () => {
         loadFromLocal();
         // Migrate old tasks to have deleted flag
@@ -1052,6 +1050,20 @@
         URL.revokeObjectURL(url);
         
         showStatus('✅ הקובץ הורד בהצלחה!');
+    }
+
+    function triggerImport() {
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = '.json';
+        input.style.display = 'none';
+        input.addEventListener('change', importData);
+        document.body.appendChild(input);
+        input.click();
+        // נקה אחרי בחירה
+        setTimeout(() => {
+            try { document.body.removeChild(input); } catch(e) {}
+        }, 60000);
     }
 
     function importData(event) {
