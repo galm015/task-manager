@@ -1056,25 +1056,29 @@
 
     function importData(event) {
         const file = event.target.files[0];
-        if (!file) return;
+        if (!file) {
+            showStatus('❌ לא נבחר קובץ');
+            return;
+        }
+
+        showStatus('⏳ קורא קובץ...');
 
         const reader = new FileReader();
         reader.onload = (e) => {
             try {
                 const importedData = JSON.parse(e.target.result);
                 
+                showStatus(`⏳ נמצאו: ${importedData.tasks?.length || 0} משימות, ${importedData.lists?.length || 0} רשימות`);
+
                 if (importedData.tasks && importedData.lists) {
-                    // Smart merge logic
                     const merged = mergeData(importedData);
                     
                     tasks = merged.tasks;
                     lists = merged.lists;
                     
-                    // Merge notes per list
                     if (importedData.listNotes) {
                         listNotes = { ...listNotes, ...importedData.listNotes };
                     } else if (importedData.notes) {
-                        // Backward compatibility: old single notes
                         if (!listNotes[lists[0]]) {
                             listNotes[lists[0]] = importedData.notes;
                         }
@@ -1090,15 +1094,15 @@
                     updateStats();
                     updateSyncDate();
                     
-                    showStatus(`✅ המיזוג הושלם! נוספו ${merged.addedCount} משימות חדשות, עודכנו ${merged.updatedCount} משימות`);
+                    showStatus(`✅ המיזוג הושלם! נוספו ${merged.addedCount} משימות, ${lists.length} רשימות`);
                 } else {
-                    showStatus('❌ קובץ לא תקין');
+                    showStatus(`❌ קובץ לא תקין — חסר tasks או lists. מפתחות: ${Object.keys(importedData).join(', ')}`);
                 }
             } catch (error) {
-                console.error('Import error:', error);
-                showStatus('❌ שגיאה בייבוא הקובץ');
+                showStatus(`❌ שגיאה: ${error.message}`);
             }
         };
+        reader.onerror = () => showStatus('❌ שגיאה בקריאת הקובץ');
         reader.readAsText(file);
         event.target.value = '';
     }
