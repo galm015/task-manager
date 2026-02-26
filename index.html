@@ -565,7 +565,7 @@
     <div class="container">
         <div class="header">
             <div class="version-info">
-                <span class="version-number">v2.9.2</span>
+                <span class="version-number">v2.9.3</span>
                 <span class="version-date">26.02.2026</span>
             </div>
             <div class="header-actions">
@@ -575,10 +575,10 @@
                 <button onclick="exportData()" class="btn btn-secondary btn-icon" title="ייצא לקובץ">
                     📥
                 </button>
-                <label class="btn btn-orange btn-icon" style="margin: 0; cursor: pointer;" title="ייבא מקובץ">
+                <button onclick="document.getElementById('importFileInput').click()" class="btn btn-orange btn-icon" title="ייבא מקובץ">
                     📤
-                    <input type="file" accept=".json" onchange="importData(event)" style="display: none;">
-                </label>
+                </button>
+                <input type="file" id="importFileInput" accept=".json" style="display: none;" onchange="importData(event)">
                 <button onclick="openSettings()" class="btn btn-settings btn-icon" title="הגדרות">
                     ⚙️
                 </button>
@@ -668,10 +668,9 @@
             <button onclick="exportData()" class="btn btn-secondary">
                 📥 ייצא לקובץ
             </button>
-            <label class="btn btn-orange" style="margin: 0; cursor: pointer;">
+            <button onclick="document.getElementById('importFileInput').click()" class="btn btn-orange" style="cursor: pointer;">
                 📤 ייבא מקובץ (מיזוג חכם)
-                <input type="file" accept=".json" onchange="importData(event)" style="display: none;">
-            </label>
+            </button>
         </div>
         <p style="color: #6b7280; font-size: 14px; margin-top: 10px;">
             💡 הייבוא מזהה שינויים חדשים ומשלב אותם אוטומטית ללא מחיקת נתונים
@@ -776,7 +775,7 @@
 
 <script>
     // VERSION INFO
-    const APP_VERSION = '2.9.2';
+    const APP_VERSION = '2.9.3';
     const VERSION_DATE = '26.02.2026';
     
     let tasks = [];
@@ -1055,56 +1054,59 @@
     }
 
     function importData(event) {
-        const file = event.target.files[0];
-        if (!file) {
-            showStatus('❌ לא נבחר קובץ');
-            return;
-        }
-
-        showStatus('⏳ קורא קובץ...');
-
-        const reader = new FileReader();
-        reader.onload = (e) => {
-            try {
-                const importedData = JSON.parse(e.target.result);
-                
-                showStatus(`⏳ נמצאו: ${importedData.tasks?.length || 0} משימות, ${importedData.lists?.length || 0} רשימות`);
-
-                if (importedData.tasks && importedData.lists) {
-                    const merged = mergeData(importedData);
-                    
-                    tasks = merged.tasks;
-                    lists = merged.lists;
-                    
-                    if (importedData.listNotes) {
-                        listNotes = { ...listNotes, ...importedData.listNotes };
-                    } else if (importedData.notes) {
-                        if (!listNotes[lists[0]]) {
-                            listNotes[lists[0]] = importedData.notes;
-                        }
-                    }
-                    
-                    lastSyncDate = new Date().toISOString();
-                    localStorage.setItem('taskManagerLastSync', lastSyncDate);
-                    
-                    saveToLocal();
-                    updateListSelector();
-                    updateNotesTextarea();
-                    renderTasks();
-                    updateStats();
-                    updateSyncDate();
-                    
-                    showStatus(`✅ המיזוג הושלם! נוספו ${merged.addedCount} משימות, ${lists.length} רשימות`);
-                } else {
-                    showStatus(`❌ קובץ לא תקין — חסר tasks או lists. מפתחות: ${Object.keys(importedData).join(', ')}`);
-                }
-            } catch (error) {
-                showStatus(`❌ שגיאה: ${error.message}`);
+        // iOS fix — קצת עיכוב לפני קריאת הקובץ
+        setTimeout(() => {
+            const file = event.target.files && event.target.files[0];
+            if (!file) {
+                showStatus('❌ לא נבחר קובץ');
+                return;
             }
-        };
-        reader.onerror = () => showStatus('❌ שגיאה בקריאת הקובץ');
-        reader.readAsText(file);
-        event.target.value = '';
+
+            showStatus('⏳ קורא קובץ: ' + file.name);
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                try {
+                    const importedData = JSON.parse(e.target.result);
+                    
+                    showStatus(`⏳ נמצאו: ${importedData.tasks?.length || 0} משימות, ${importedData.lists?.length || 0} רשימות`);
+
+                    if (importedData.tasks && importedData.lists) {
+                        const merged = mergeData(importedData);
+                        
+                        tasks = merged.tasks;
+                        lists = merged.lists;
+                        
+                        if (importedData.listNotes) {
+                            listNotes = { ...listNotes, ...importedData.listNotes };
+                        } else if (importedData.notes) {
+                            if (!listNotes[lists[0]]) {
+                                listNotes[lists[0]] = importedData.notes;
+                            }
+                        }
+                        
+                        lastSyncDate = new Date().toISOString();
+                        localStorage.setItem('taskManagerLastSync', lastSyncDate);
+                        
+                        saveToLocal();
+                        updateListSelector();
+                        updateNotesTextarea();
+                        renderTasks();
+                        updateStats();
+                        updateSyncDate();
+                        
+                        showStatus(`✅ המיזוג הושלם! נוספו ${merged.addedCount} משימות, ${lists.length} רשימות`);
+                    } else {
+                        showStatus(`❌ קובץ לא תקין — מפתחות: ${Object.keys(importedData).join(', ')}`);
+                    }
+                } catch (error) {
+                    showStatus(`❌ שגיאה: ${error.message}`);
+                }
+            };
+            reader.onerror = () => showStatus('❌ שגיאה בקריאת הקובץ');
+            reader.readAsText(file);
+            event.target.value = '';
+        }, 300);
     }
 
     function mergeData(importedData) {
