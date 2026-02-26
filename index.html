@@ -565,7 +565,7 @@
     <div class="container">
         <div class="header">
             <div class="version-info">
-                <span class="version-number">v2.9.5</span>
+                <span class="version-number">v2.9.6</span>
                 <span class="version-date">26.02.2026</span>
             </div>
             <div class="header-actions">
@@ -772,9 +772,11 @@
     </div>
 </div>
 
+    <input type="file" id="importFileInput" accept=".json" style="display:none">
+
 <script>
     // VERSION INFO
-    const APP_VERSION = '2.9.5';
+    const APP_VERSION = '2.9.6';
     const VERSION_DATE = '26.02.2026';
     
     let tasks = [];
@@ -788,7 +790,7 @@
     // ← הכנס כאן את ה-URL שלך אחרי פרסום ב-Google Apps Script
     const GAS_URL = 'https://script.google.com/macros/s/AKfycbzjZ-EXwOGX8xie5khRm0T9_NimTJDNONcY_94pYpNG6ToLYQkCsSqtnOVfPl1Cwcum/exec';
 
-    //Load data on startup
+    // Load data on startup
     window.onload = () => {
         loadFromLocal();
         // Migrate old tasks to have deleted flag
@@ -1053,17 +1055,10 @@
     }
 
     function triggerImport() {
-        const input = document.createElement('input');
-        input.type = 'file';
-        input.accept = '.json';
-        input.style.display = 'none';
-        input.addEventListener('change', importData);
-        document.body.appendChild(input);
+        const input = document.getElementById('importFileInput');
+        input.value = '';
+        input.onchange = importData;
         input.click();
-        // נקה אחרי בחירה
-        setTimeout(() => {
-            try { document.body.removeChild(input); } catch(e) {}
-        }, 60000);
     }
 
     function importData(event) {
