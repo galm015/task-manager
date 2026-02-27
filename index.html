@@ -565,7 +565,7 @@
     <div class="container">
         <div class="header">
             <div class="version-info">
-                <span class="version-number">v2.9.8</span>
+                <span class="version-number">v2.9.9</span>
                 <span class="version-date">26.02.2026</span>
             </div>
             <div class="header-actions">
@@ -776,7 +776,7 @@
 
 <script>
     // VERSION INFO
-    const APP_VERSION = '2.9.8';
+    const APP_VERSION = '2.9.9';
     const VERSION_DATE = '26.02.2026';
     
     let tasks = [];
@@ -1062,60 +1062,53 @@
     }
 
     function importData(event) {
-        alert('importData הופעל'); // בדיקה זמנית
-        // iOS fix — קצת עיכוב לפני קריאת הקובץ
-        setTimeout(() => {
-            const file = event.target.files && event.target.files[0];
-            if (!file) {
-                showStatus('❌ לא נבחר קובץ');
-                return;
-            }
+        const file = event.target.files && event.target.files[0];
+        if (!file) {
+            showStatus('❌ לא נבחר קובץ');
+            return;
+        }
 
-            showStatus('⏳ קורא קובץ: ' + file.name);
+        showStatus('⏳ קורא קובץ: ' + file.name);
 
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                try {
-                    const importedData = JSON.parse(e.target.result);
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            try {
+                const importedData = JSON.parse(e.target.result);
+                
+                if (importedData.tasks && importedData.lists) {
+                    const merged = mergeData(importedData);
                     
-                    showStatus(`⏳ נמצאו: ${importedData.tasks?.length || 0} משימות, ${importedData.lists?.length || 0} רשימות`);
-
-                    if (importedData.tasks && importedData.lists) {
-                        const merged = mergeData(importedData);
-                        
-                        tasks = merged.tasks;
-                        lists = merged.lists;
-                        
-                        if (importedData.listNotes) {
-                            listNotes = { ...listNotes, ...importedData.listNotes };
-                        } else if (importedData.notes) {
-                            if (!listNotes[lists[0]]) {
-                                listNotes[lists[0]] = importedData.notes;
-                            }
+                    tasks = merged.tasks;
+                    lists = merged.lists;
+                    
+                    if (importedData.listNotes) {
+                        listNotes = { ...listNotes, ...importedData.listNotes };
+                    } else if (importedData.notes) {
+                        if (!listNotes[lists[0]]) {
+                            listNotes[lists[0]] = importedData.notes;
                         }
-                        
-                        lastSyncDate = new Date().toISOString();
-                        localStorage.setItem('taskManagerLastSync', lastSyncDate);
-                        
-                        saveToLocal();
-                        updateListSelector();
-                        updateNotesTextarea();
-                        renderTasks();
-                        updateStats();
-                        updateSyncDate();
-                        
-                        showStatus(`✅ המיזוג הושלם! נוספו ${merged.addedCount} משימות, ${lists.length} רשימות`);
-                    } else {
-                        showStatus(`❌ קובץ לא תקין — מפתחות: ${Object.keys(importedData).join(', ')}`);
                     }
-                } catch (error) {
-                    showStatus(`❌ שגיאה: ${error.message}`);
+                    
+                    lastSyncDate = new Date().toISOString();
+                    localStorage.setItem('taskManagerLastSync', lastSyncDate);
+                    
+                    saveToLocal();
+                    updateListSelector();
+                    updateNotesTextarea();
+                    renderTasks();
+                    updateStats();
+                    updateSyncDate();
+                    
+                    showStatus(`✅ המיזוג הושלם! נוספו ${merged.addedCount} משימות, ${lists.length} רשימות`);
+                } else {
+                    showStatus(`❌ קובץ לא תקין — מפתחות: ${Object.keys(importedData).join(', ')}`);
                 }
-            };
-            reader.onerror = () => showStatus('❌ שגיאה בקריאת הקובץ');
-            reader.readAsText(file);
-            event.target.value = '';
-        }, 300);
+            } catch (error) {
+                showStatus(`❌ שגיאה: ${error.message}`);
+            }
+        };
+        reader.onerror = () => showStatus('❌ שגיאה בקריאת הקובץ');
+        reader.readAsText(file);
     }
 
     function mergeData(importedData) {
