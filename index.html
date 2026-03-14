@@ -565,7 +565,7 @@
     <div class="container">
         <div class="header">
             <div class="version-info">
-                <span class="version-number">v4.1.0</span>
+                <span class="version-number">v4.2.0</span>
                 <span class="version-date">14.03.2026</span>
             </div>
             <div class="header-actions">
@@ -776,7 +776,7 @@
 
 <script>
     // VERSION INFO
-    const APP_VERSION = '4.1.0';
+    const APP_VERSION = '4.2.0';
     const VERSION_DATE = '14.03.2026';
 
     // ============================================
@@ -812,28 +812,29 @@
         if (!apiToken) return;
         try {
             const serverTasks = await apiCall('GET', '/api/tasks/');
-            serverTasks.forEach(st => {
-                const existing = tasks.find(t => String(t.serverId) === String(st.id) || String(t.id) === String(st.external_id));
-                if (!existing) {
-                    tasks.push({
-                        id: st.external_id ? parseInt(st.external_id) : st.id,
-                        title: st.title,
-                        notes: st.notes,
-                        category: st.category,
-                        priority: st.priority,
-                        listName: st.list_name,
-                        completed: st.completed,
-                        deleted: st.deleted,
-                        createdAt: st.created_at,
-                        serverId: st.id
-                    });
-                }
-            });
-            saveToLocal();
+            // החלף הכל בנתונים מהשרת
+            tasks = serverTasks.map(st => ({
+                id: st.external_id ? parseInt(st.external_id) : st.id,
+                title: st.title,
+                notes: st.notes || '',
+                category: st.category,
+                priority: st.priority,
+                listName: st.list_name,
+                completed: st.completed,
+                deleted: st.deleted,
+                createdAt: st.created_at,
+                serverId: st.id
+            }));
+            // בנה רשימות מהמשימות
+            const serverLists = [...new Set(tasks.map(t => t.list_name || t.listName).filter(Boolean))];
+            if (serverLists.length > 0) lists = serverLists;
+            updateListSelector();
+            updateNotesTextarea();
             renderTasks();
             updateStats();
             showStatus('✅ סונכרן עם השרת');
         } catch(e) {
+            showStatus('❌ שגיאת חיבור לשרת');
             console.warn('Sync failed:', e.message);
         }
     }
@@ -900,50 +901,32 @@
 
     // Load data on startup
     window.onload = async () => {
+        // נקה נתונים ישנים מ-localStorage
+        localStorage.removeItem('taskManagerTasks');
+        localStorage.removeItem('taskManagerLists');
+        localStorage.removeItem('taskManagerListNotes');
+        localStorage.removeItem('taskManagerLastSync');
+        localStorage.removeItem('mathWebsiteTasks');
+        localStorage.removeItem('mathWebsiteLists');
+        localStorage.removeItem('mathWebsiteListNotes');
+        localStorage.removeItem('mathWebsiteNotes');
+        localStorage.removeItem('mathWebsiteLastSync');
+
         loadFromLocal();
-        tasks = tasks.map(task => ({ ...task, deleted: task.deleted || false }));
-        saveToLocal();
         updateListSelector();
         updateNotesTextarea();
         renderTasks();
         updateStats();
-        updateSyncDate();
-        // סנכרון עם השרת אם מחוברים
+
         if (apiToken) {
             await syncTasksFromServer();
+        } else {
+            showStatus('⚠️ נא להתחבר בהגדרות ⚙️');
         }
     };
 
     function loadFromLocal() {
-        // תמיכה גם במפתחות ישנים (mathWebsite) וגם חדשים (taskManager)
-        const savedTasks = localStorage.getItem('taskManagerTasks') || localStorage.getItem('mathWebsiteTasks');
-        if (savedTasks) {
-            tasks = JSON.parse(savedTasks).map(task => ({
-                ...task,
-                listName: task.listName || 'כללי'
-            }));
-        }
-
-        const savedLists = localStorage.getItem('taskManagerLists') || localStorage.getItem('mathWebsiteLists');
-        if (savedLists) {
-            lists = JSON.parse(savedLists);
-        }
-
-        const savedNotes = localStorage.getItem('taskManagerListNotes') || localStorage.getItem('mathWebsiteListNotes');
-        if (savedNotes) {
-            listNotes = JSON.parse(savedNotes);
-        } else {
-            const oldNotes = localStorage.getItem('mathWebsiteNotes');
-            if (oldNotes) {
-                listNotes = { [lists[0]]: oldNotes };
-            }
-        }
-
-        const savedSyncDate = localStorage.getItem('taskManagerLastSync') || localStorage.getItem('mathWebsiteLastSync');
-        if (savedSyncDate) {
-            lastSyncDate = savedSyncDate;
-        }
-
+        // טוען רק הגדרות משתמש — נתונים מגיעים מהשרת
         const savedPhone = localStorage.getItem('taskManagerUserPhone');
         if (savedPhone) userPhone = savedPhone;
 
@@ -952,9 +935,9 @@
     }
 
     function saveToLocal() {
-        localStorage.setItem('taskManagerTasks', JSON.stringify(tasks));
-        localStorage.setItem('taskManagerLists', JSON.stringify(lists));
-        localStorage.setItem('taskManagerListNotes', JSON.stringify(listNotes));
+        // שומר רק הגדרות — נתונים נשמרים בשרת
+        localStorage.setItem('taskManagerUserPhone', userPhone);
+        localStorage.setItem('taskManagerAccessCode', accessCode);
     }
 
     function updateSyncDate() {
