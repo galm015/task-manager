@@ -565,7 +565,7 @@
     <div class="container">
         <div class="header">
             <div class="version-info">
-                <span class="version-number">v4.0.1</span>
+                <span class="version-number">v4.0.2</span>
                 <span class="version-date">14.03.2026</span>
             </div>
             <div class="header-actions">
@@ -776,7 +776,7 @@
 
 <script>
     // VERSION INFO
-    const APP_VERSION = '4.0.1';
+    const APP_VERSION = '4.0.2';
     const VERSION_DATE = '14.03.2026';
 
     // ============================================
@@ -1082,6 +1082,8 @@
     function validateCodeLocally(code) {
         return code && code.length >= 6;
     }
+
+    async function sendReminder(sendNow = false) {
         const taskId = parseInt(document.getElementById('reminderTaskId').value);
         const task = tasks.find(t => t.id === taskId);
         if (!task) return;
@@ -1103,18 +1105,6 @@
         const scheduledTime = sendNow
             ? new Date().toISOString()
             : new Date(document.getElementById('reminderTime').value).toISOString();
-
-        const payload = {
-            action: sendNow ? 'send_now' : 'schedule',
-            taskId: task.id,
-            taskTitle: task.title,
-            taskNotes: task.notes || '',
-            taskCategory: task.category,
-            taskPriority: task.priority,
-            scheduledTime,
-            userPhone,
-            accessCode
-        };
 
         try {
             closeReminderModal();
