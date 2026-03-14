@@ -565,8 +565,8 @@
     <div class="container">
         <div class="header">
             <div class="version-info">
-                <span class="version-number">v3.0.0</span>
-                <span class="version-date">27.02.2026</span>
+                <span class="version-number">v4.0.0</span>
+                <span class="version-date">14.03.2026</span>
             </div>
             <div class="header-actions">
                 <button onclick="scrollToAddTask()" class="btn btn-add-task btn-icon" title="הוסף משימה">
@@ -776,34 +776,142 @@
 
 <script>
     // VERSION INFO
-    const APP_VERSION = '3.0.0';
-    const VERSION_DATE = '27.02.2026';
-    
+    const APP_VERSION = '4.0.0';
+    const VERSION_DATE = '14.03.2026';
+
+    // ============================================
+    // API Configuration
+    // ============================================
+    const API_URL = 'http://35.252.21.109';
+    let apiToken = localStorage.getItem('taskManagerApiToken') || null;
+    let apiUserId = localStorage.getItem('taskManagerApiUserId') || null;
+
+    async function apiCall(method, path, body = null) {
+        const headers = { 'Content-Type': 'application/json' };
+        if (apiToken) headers['Authorization'] = `Bearer ${apiToken}`;
+        const opts = { method, headers };
+        if (body) opts.body = JSON.stringify(body);
+        const res = await fetch(`${API_URL}${path}`, opts);
+        if (!res.ok) {
+            const err = await res.json().catch(() => ({}));
+            throw new Error(err.detail || `שגיאת שרת ${res.status}`);
+        }
+        return res.json();
+    }
+
+    async function loginToServer(code, phone) {
+        const data = await apiCall('POST', '/api/users/login', { access_code: code, phone });
+        apiToken = data.token;
+        apiUserId = data.user_id;
+        localStorage.setItem('taskManagerApiToken', apiToken);
+        localStorage.setItem('taskManagerApiUserId', String(apiUserId));
+        return data;
+    }
+
+    async function syncTasksFromServer() {
+        if (!apiToken) return;
+        try {
+            const serverTasks = await apiCall('GET', '/api/tasks/');
+            serverTasks.forEach(st => {
+                const existing = tasks.find(t => String(t.serverId) === String(st.id) || String(t.id) === String(st.external_id));
+                if (!existing) {
+                    tasks.push({
+                        id: st.external_id ? parseInt(st.external_id) : st.id,
+                        title: st.title,
+                        notes: st.notes,
+                        category: st.category,
+                        priority: st.priority,
+                        listName: st.list_name,
+                        completed: st.completed,
+                        deleted: st.deleted,
+                        createdAt: st.created_at,
+                        serverId: st.id
+                    });
+                }
+            });
+            saveToLocal();
+            renderTasks();
+            updateStats();
+            showStatus('✅ סונכרן עם השרת');
+        } catch(e) {
+            console.warn('Sync failed:', e.message);
+        }
+    }
+
+    async function pushTaskToServer(task) {
+        if (!apiToken) return;
+        try {
+            const result = await apiCall('POST', '/api/tasks/', {
+                title: task.title,
+                notes: task.notes || '',
+                category: task.category,
+                priority: task.priority,
+                list_name: task.listName,
+                external_id: String(task.id)
+            });
+            task.serverId = result.id;
+            saveToLocal();
+        } catch(e) {
+            console.warn('Push failed:', e.message);
+        }
+    }
+
+    async function updateTaskOnServer(task) {
+        if (!apiToken || !task.serverId) return;
+        try {
+            await apiCall('PUT', `/api/tasks/${task.serverId}`, {
+                title: task.title,
+                notes: task.notes || '',
+                category: task.category,
+                priority: task.priority,
+                list_name: task.listName,
+                completed: task.completed,
+                deleted: task.deleted
+            });
+        } catch(e) {
+            console.warn('Update failed:', e.message);
+        }
+    }
+
+    async function scheduleReminderOnServer(task, scheduledTime) {
+        if (!apiToken) return false;
+        try {
+            await apiCall('POST', '/api/reminders/', {
+                task_id: task.serverId || null,
+                task_title: task.title,
+                task_notes: task.notes || '',
+                scheduled_time: scheduledTime
+            });
+            return true;
+        } catch(e) {
+            console.warn('Reminder failed:', e.message);
+            return false;
+        }
+    }
+
     let tasks = [];
     let lists = ['כללי'];
     let currentList = 'כללי';
     let editingTaskId = null;
-    let listNotes = {}; // Notes per list
+    let listNotes = {};
     let lastSyncDate = null;
     let userPhone = '';
     let accessCode = '';
-    // ← הכנס כאן את ה-URL שלך אחרי פרסום ב-Google Apps Script
-    const GAS_URL = 'https://script.google.com/macros/s/AKfycbzjZ-EXwOGX8xie5khRm0T9_NimTJDNONcY_94pYpNG6ToLYQkCsSqtnOVfPl1Cwcum/exec';
 
     // Load data on startup
-    window.onload = () => {
+    window.onload = async () => {
         loadFromLocal();
-        // Migrate old tasks to have deleted flag
-        tasks = tasks.map(task => ({
-            ...task,
-            deleted: task.deleted || false
-        }));
+        tasks = tasks.map(task => ({ ...task, deleted: task.deleted || false }));
         saveToLocal();
         updateListSelector();
         updateNotesTextarea();
         renderTasks();
         updateStats();
         updateSyncDate();
+        // סנכרון עם השרת אם מחוברים
+        if (apiToken) {
+            await syncTasksFromServer();
+        }
     };
 
     function loadFromLocal() {
@@ -904,33 +1012,22 @@
         const phone = document.getElementById('phoneNumber').value.trim();
         const code  = document.getElementById('accessCode').value.trim();
 
-        if (!code) {
-            showStatus('⚠️ נא להזין קוד גישה');
-            return;
+        if (!code) { showStatus('⚠️ נא להזין קוד גישה'); return; }
+        if (!phone) { showStatus('⚠️ נא להזין מספר טלפון'); return; }
+
+        showStatus('⏳ מתחבר לשרת...');
+        try {
+            const data = await loginToServer(code, phone);
+            userPhone  = phone;
+            accessCode = code;
+            localStorage.setItem('taskManagerUserPhone', phone);
+            localStorage.setItem('taskManagerAccessCode', code);
+            closeSettings();
+            showStatus(`✅ מחובר כ-${data.name}`);
+            await syncTasksFromServer();
+        } catch(e) {
+            showStatus(`❌ ${e.message}`);
         }
-
-        if (!validateCodeLocally(code)) {
-            showStatus('❌ קוד גישה לא תקין — חייב להיות לפחות 6 תווים');
-            return;
-        }
-
-        if (!phone) {
-            showStatus('⚠️ נא להזין מספר טלפון');
-            return;
-        }
-
-        // שמור מיד — GAS יאמת בפועל כשמנסים לשלוח
-        userPhone  = phone;
-        accessCode = code;
-        localStorage.setItem('taskManagerUserPhone', phone);
-        localStorage.setItem('taskManagerAccessCode', code);
-
-        // שלח ולידציה ל-GAS ברקע (fire-and-forget)
-        // אם הקוד לא תקין — GAS ישלח לך התראה
-        callGAS({ action: 'validate', accessCode: code, userPhone: phone }).catch(() => {});
-
-        closeSettings();
-        showStatus('✅ ההגדרות נשמרו — תקבל התראה אם הקוד לא תקין');
     }
 
     function sendToWhatsApp(taskId, event) {
@@ -1020,14 +1117,15 @@
         };
 
         try {
-            showStatus(sendNow ? '✅ התזכורת נשלחה!' : '✅ התזכורת תישלח בזמן הנקוב');
             closeReminderModal();
-            callGAS(payload).catch(() => {
-                showStatus('⚠️ שגיאת חיבור — בדוק שה-URL מוגדר');
-            });
+            const ok = await scheduleReminderOnServer(task, scheduledTime);
+            if (ok) {
+                showStatus(sendNow ? '✅ התזכורת נשלחה!' : '✅ התזכורת תישלח בזמן הנקוב');
+            } else {
+                showStatus('⚠️ שגיאה בשמירת התזכורת — בדוק חיבור');
+            }
         } catch (err) {
             showStatus('❌ שגיאת חיבור לשרת');
-            console.error(err);
         }
     }
 
@@ -1256,7 +1354,7 @@
         updateStats();
     }
 
-    function saveTask() {
+    async function saveTask() {
         const title = document.getElementById('taskTitle').value.trim();
         if (!title) {
             showStatus('❌ נא להזין תיאור משימה');
@@ -1264,17 +1362,17 @@
         }
 
         if (editingTaskId) {
-            // Edit existing task
             const task = tasks.find(t => t.id === editingTaskId);
             if (task) {
                 task.title = title;
                 task.category = document.getElementById('taskCategory').value;
                 task.priority = document.getElementById('taskPriority').value;
                 task.notes = document.getElementById('taskNotes').value;
+                saveToLocal();
+                updateTaskOnServer(task);
                 showStatus('✅ המשימה עודכנה בהצלחה');
             }
         } else {
-            // Add new task
             const task = {
                 id: Date.now(),
                 title: title,
@@ -1286,10 +1384,11 @@
                 createdAt: new Date().toISOString()
             };
             tasks.push(task);
+            saveToLocal();
+            pushTaskToServer(task);
             showStatus('✅ המשימה נוספה בהצלחה');
         }
 
-        saveToLocal();
         cancelEdit();
         renderTasks();
         updateStats();
@@ -1331,6 +1430,7 @@
         if (task) {
             task.completed = !task.completed;
             saveToLocal();
+            updateTaskOnServer(task);
             renderTasks();
             updateStats();
         }
@@ -1342,6 +1442,7 @@
         if (task) {
             task.deleted = true;
             saveToLocal();
+            updateTaskOnServer(task);
             renderTasks();
             updateStats();
             showStatus('🗑️ המשימה הועברה לנמחקות');
