@@ -565,7 +565,7 @@
     <div class="container">
         <div class="header">
             <div class="version-info">
-                <span class="version-number">v4.2.0</span>
+                <span class="version-number">v4.2.1</span>
                 <span class="version-date">14.03.2026</span>
             </div>
             <div class="header-actions">
@@ -776,7 +776,7 @@
 
 <script>
     // VERSION INFO
-    const APP_VERSION = '4.2.0';
+    const APP_VERSION = '4.2.1';
     const VERSION_DATE = '14.03.2026';
 
     // ============================================
@@ -1280,7 +1280,7 @@
         document.getElementById('deleteListConfirm').classList.add('hidden');
     }
 
-    function deleteList() {
+    async function deleteList() {
         const tasksInList = tasks.filter(t => t.listName === currentList && !t.deleted);
         
         if (tasksInList.length > 0) {
@@ -1293,12 +1293,15 @@
         const listToDelete = currentList;
         lists = lists.filter(l => l !== currentList);
         
-        // Mark all tasks in this list as deleted (not permanent delete)
+        // סמן כנמחק מקומית ושלח לשרת
+        const deletePromises = [];
         tasks.forEach(task => {
-            if (task.listName === currentList) {
+            if (task.listName === listToDelete) {
                 task.deleted = true;
+                deletePromises.push(updateTaskOnServer(task));
             }
         });
+        await Promise.all(deletePromises);
         
         // Delete notes for this list
         delete listNotes[listToDelete];
