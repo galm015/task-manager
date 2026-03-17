@@ -603,7 +603,7 @@
     <div class="container">
         <div class="header">
             <div class="version-info">
-                <span class="version-number">v4.3.1</span>
+                <span class="version-number">v4.4.0</span>
                 <span class="version-date">14.03.2026</span>
             </div>
             <div class="header-actions">
@@ -802,6 +802,12 @@
 
         <textarea id="taskNotes" placeholder="הערות (אופציונלי)" rows="3"></textarea>
 
+        <div style="display:flex;gap:10px;align-items:center;background:#f9fafb;border:1px solid #e5e7eb;border-radius:10px;padding:10px;margin-bottom:5px;">
+            <label style="color:#6b7280;font-size:13px;white-space:nowrap;">📅 תאריך יעד:</label>
+            <input type="datetime-local" id="taskDueDate" style="flex:1;border:none;background:transparent;font-size:13px;color:#374151;">
+            <button onclick="document.getElementById('taskDueDate').value=''" style="background:none;border:none;cursor:pointer;color:#9ca3af;font-size:16px;" title="נקה">✕</button>
+        </div>
+
         <div style="display: flex; gap: 10px;">
             <button onclick="saveTask()" class="btn" style="flex: 1;" id="saveBtn">➕ הוסף משימה</button>
             <button onclick="cancelEdit()" class="btn hidden" style="flex: 1; background: #6b7280;" id="cancelBtn">ביטול</button>
@@ -820,7 +826,7 @@
 
 <script>
     // VERSION INFO
-    const APP_VERSION = '4.3.1';
+    const APP_VERSION = '4.4.0';
     const VERSION_DATE = '14.03.2026';
 
     // ============================================
@@ -867,6 +873,7 @@
                 completed: st.completed,
                 deleted: st.deleted,
                 createdAt: st.created_at,
+                dueDate: st.due_date ? new Date(st.due_date).toISOString().slice(0,16) : null,
                 serverId: st.id
             }));
             // בנה רשימות מהמשימות
@@ -892,7 +899,8 @@
                 category: task.category,
                 priority: task.priority,
                 list_name: task.listName,
-                external_id: String(task.id)
+                external_id: String(task.id),
+                due_date: task.dueDate || null
             });
             task.serverId = result.id;
             saveToLocal();
@@ -911,7 +919,8 @@
                 priority: task.priority,
                 list_name: task.listName,
                 completed: task.completed,
-                deleted: task.deleted
+                deleted: task.deleted,
+                due_date: task.dueDate || null
             });
         } catch(e) {
             console.warn('Update failed:', e.message);
@@ -1410,6 +1419,7 @@
                 task.category = document.getElementById('taskCategory').value;
                 task.priority = document.getElementById('taskPriority').value;
                 task.notes = document.getElementById('taskNotes').value;
+                task.dueDate = document.getElementById('taskDueDate').value || null;
                 saveToLocal();
                 updateTaskOnServer(task);
                 showStatus('✅ המשימה עודכנה בהצלחה');
@@ -1421,6 +1431,7 @@
                 category: document.getElementById('taskCategory').value,
                 priority: document.getElementById('taskPriority').value,
                 notes: document.getElementById('taskNotes').value,
+                dueDate: document.getElementById('taskDueDate').value || null,
                 completed: false,
                 listName: currentList,
                 createdAt: new Date().toISOString()
@@ -1445,6 +1456,7 @@
         document.getElementById('taskCategory').value = task.category;
         document.getElementById('taskPriority').value = task.priority;
         document.getElementById('taskNotes').value = task.notes || '';
+        document.getElementById('taskDueDate').value = task.dueDate || '';
         
         document.getElementById('formTitle').textContent = '✏️ עריכת משימה';
         document.getElementById('saveBtn').textContent = '💾 שמור שינויים';
@@ -1460,6 +1472,7 @@
         document.getElementById('taskCategory').value = 'כללי';
         document.getElementById('taskPriority').value = 'רגיל';
         document.getElementById('taskNotes').value = '';
+        document.getElementById('taskDueDate').value = '';
         
         document.getElementById('formTitle').textContent = '➕ משימה חדשה';
         document.getElementById('saveBtn').textContent = '➕ הוסף משימה';
@@ -1559,7 +1572,13 @@
             // Show all tasks
         }
         
-        const activeTasks = filteredTasks.filter(t => !t.completed && !t.deleted);
+        // מיין לפי תאריך יעד — עם תאריך קודם, ללא תאריך אחרון
+        const activeTasks = filteredTasks.filter(t => !t.completed && !t.deleted).sort((a, b) => {
+            if (a.dueDate && b.dueDate) return new Date(a.dueDate) - new Date(b.dueDate);
+            if (a.dueDate) return -1;
+            if (b.dueDate) return 1;
+            return 0;
+        });
         const completedTasks = filteredTasks.filter(t => t.completed && !t.deleted);
         const deletedTasks = filteredTasks.filter(t => t.deleted);
 
@@ -1638,6 +1657,7 @@
                         ${new Date(task.createdAt).toLocaleDateString('he-IL')}
                     </span>
                     ${isDeleted ? '<span class="badge" style="background: #fee2e2; color: #991b1b;">🗑️ נמחק</span>' : ''}
+                    ${task.dueDate ? `<span class="badge" style="background:${new Date(task.dueDate) < new Date() && !task.completed ? '#fee2e2;color:#991b1b' : '#ede9fe;color:#5b21b6'};">📅 ${new Date(task.dueDate).toLocaleString('he-IL', {day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'})}</span>` : ''}
                 </div>
                 ${task.notes ? `<div class="task-notes">${task.notes}</div>` : ''}
             </div>
