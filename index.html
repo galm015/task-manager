@@ -603,7 +603,7 @@
     <div class="container">
         <div class="header">
             <div class="version-info">
-                <span class="version-number">v4.3.0</span>
+                <span class="version-number">v4.3.1</span>
                 <span class="version-date">14.03.2026</span>
             </div>
             <div class="header-actions">
@@ -669,6 +669,9 @@
 
             <button onclick="saveSettings()" class="btn" style="width: 100%;">
                 💾 שמור הגדרות
+            </button>
+            <button onclick="logout()" class="btn" style="width: 100%; margin-top: 10px; background: #fee2e2; color: #991b1b;">
+                🚪 התנתק
             </button>
         </div>
     </div>
@@ -817,7 +820,7 @@
 
 <script>
     // VERSION INFO
-    const APP_VERSION = '4.3.0';
+    const APP_VERSION = '4.3.1';
     const VERSION_DATE = '14.03.2026';
 
     // ============================================
@@ -1027,6 +1030,26 @@
         document.getElementById('phoneNumber').value = userPhone;
         document.getElementById('accessCode').value = accessCode;
         document.getElementById('settingsModal').classList.add('active');
+    }
+
+    function logout() {
+        if (!confirm('האם אתה בטוח שברצונך להתנתק?')) return;
+        localStorage.removeItem('taskManagerApiToken');
+        localStorage.removeItem('taskManagerApiUserId');
+        localStorage.removeItem('taskManagerUserPhone');
+        localStorage.removeItem('taskManagerAccessCode');
+        apiToken = null;
+        apiUserId = null;
+        userPhone = '';
+        accessCode = '';
+        adminAuthenticated = false;
+        tasks = [];
+        lists = ['כללי'];
+        document.getElementById('adminBtn').style.display = 'none';
+        closeSettings();
+        renderTasks();
+        updateStats();
+        showStatus('👋 התנתקת בהצלחה');
     }
 
     function closeSettings() {
