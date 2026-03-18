@@ -603,7 +603,7 @@
     <div class="container">
         <div class="header">
             <div class="version-info">
-                <span class="version-number">v4.5.0</span>
+                <span class="version-number">v4.5.1</span>
                 <span class="version-date">14.03.2026</span>
             </div>
             <div class="header-actions">
@@ -826,7 +826,7 @@
 
 <script>
     // VERSION INFO
-    const APP_VERSION = '4.5.0';
+    const APP_VERSION = '4.5.1';
     const VERSION_DATE = '14.03.2026';
 
     // ============================================
@@ -1188,9 +1188,9 @@
     }
 
     async function sendReminder(sendNow = false) {
-        const taskId = parseInt(document.getElementById('reminderTaskId').value);
-        const task = tasks.find(t => t.id === taskId);
-        if (!task) return;
+        const taskId = document.getElementById('reminderTaskId').value;
+        const task = tasks.find(t => String(t.id) === String(taskId));
+        if (!task) { showStatus('❌ משימה לא נמצאה'); return; }
 
         if (!accessCode) {
             closeReminderModal();
