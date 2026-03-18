@@ -603,7 +603,7 @@
     <div class="container">
         <div class="header">
             <div class="version-info">
-                <span class="version-number">v4.4.0</span>
+                <span class="version-number">v4.5.0</span>
                 <span class="version-date">14.03.2026</span>
             </div>
             <div class="header-actions">
@@ -826,7 +826,7 @@
 
 <script>
     // VERSION INFO
-    const APP_VERSION = '4.4.0';
+    const APP_VERSION = '4.5.0';
     const VERSION_DATE = '14.03.2026';
 
     // ============================================
@@ -835,6 +835,48 @@
     const API_URL = 'https://api.galmichal.com';
     let apiToken = localStorage.getItem('taskManagerApiToken') || null;
     let apiUserId = localStorage.getItem('taskManagerApiUserId') || null;
+
+    let activeReminders = []; // תזכורות פעילות
+
+    async function loadReminders() {
+        if (!apiToken) return;
+        try {
+            const all = await apiCall('GET', '/api/reminders/');
+            activeReminders = all.filter(r => r.status === 'pending');
+        } catch(e) {
+            console.warn('Failed to load reminders:', e.message);
+        }
+    }
+
+    function getTaskReminder(task) {
+        return activeReminders.find(r => r.task_id === task.serverId || r.task_id === task.id);
+    }
+
+    async function cancelReminder(reminderId) {
+        try {
+            await apiCall('DELETE', `/api/reminders/${reminderId}`);
+            await loadReminders();
+            renderTasks();
+            showStatus('✅ התזכורת בוטלה');
+        } catch(e) {
+            showStatus('❌ שגיאה בביטול');
+        }
+    }
+
+    async function updateReminderTime(reminderId) {
+        const timeStr = document.getElementById(`reminderEdit_${reminderId}`).value;
+        if (!timeStr) { showStatus('⚠️ בחר זמן'); return; }
+        try {
+            await apiCall('PUT', `/api/reminders/${reminderId}`, {
+                scheduled_time: new Date(timeStr).toISOString()
+            });
+            await loadReminders();
+            renderTasks();
+            showStatus('✅ התזכורת עודכנה');
+        } catch(e) {
+            showStatus('❌ שגיאה בעדכון');
+        }
+    }
 
     async function apiCall(method, path, body = null) {
         const headers = { 'Content-Type': 'application/json' };
@@ -974,6 +1016,8 @@
         if (apiToken) {
             await syncTasksFromServer();
             await checkAdminRole();
+            await loadReminders();
+            renderTasks();
         } else {
             showStatus('⚠️ נא להתחבר בהגדרות ⚙️');
         }
@@ -1083,6 +1127,8 @@
             showStatus(`✅ מחובר כ-${data.name}`);
             await syncTasksFromServer();
             await checkAdminRole();
+            await loadReminders();
+            renderTasks();
         } catch(e) {
             showStatus(`❌ ${e.message}`);
         }
@@ -1619,6 +1665,7 @@
     function renderTask(task) {
         const isDeleted = task.deleted;
         const isCompleted = task.completed && !task.deleted;
+        const reminder = getTaskReminder(task);
         
         let actions = '';
         if (isDeleted) {
@@ -1637,7 +1684,11 @@
                 <button onclick="toggleTask(${task.id}, event)" class="btn btn-small btn-secondary">
                     ${task.completed ? '↩️' : '✓'}
                 </button>
-                <button onclick="sendToWhatsApp(${task.id}, event)" class="btn btn-small btn-whatsapp" title="שלח תזכורת בוואטסאפ">📱</button>
+                ${reminder ? `
+                    <button onclick="toggleReminderPanel(${reminder.id}, event)" class="btn btn-small" style="background:#fef3c7;color:#92400e;" title="תזכורת פעילה">🔔</button>
+                ` : `
+                    <button onclick="sendToWhatsApp(${task.id}, event)" class="btn btn-small btn-whatsapp" title="שלח תזכורת">📱</button>
+                `}
                 <button onclick="deleteTask(${task.id}, event)" class="btn btn-small btn-delete">🗑️</button>
             `;
         }
@@ -1660,8 +1711,27 @@
                     ${task.dueDate ? `<span class="badge" style="background:${new Date(task.dueDate) < new Date() && !task.completed ? '#fee2e2;color:#991b1b' : '#ede9fe;color:#5b21b6'};">📅 ${new Date(task.dueDate).toLocaleString('he-IL', {day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'})}</span>` : ''}
                 </div>
                 ${task.notes ? `<div class="task-notes">${task.notes}</div>` : ''}
+                ${reminder ? `
+                <div id="reminderPanel_${reminder.id}" style="display:none;margin-top:8px;padding:10px;background:#fffbeb;border:1px solid #fde68a;border-radius:8px;">
+                    <div style="font-size:12px;color:#92400e;margin-bottom:8px;">
+                        🔔 תזכורת מתוזמנת: ${new Date(reminder.scheduled_time).toLocaleString('he-IL', {day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'})}
+                    </div>
+                    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+                        <input type="datetime-local" id="reminderEdit_${reminder.id}"
+                            value="${new Date(reminder.scheduled_time).toISOString().slice(0,16)}"
+                            style="flex:1;min-width:160px;padding:6px;border:1px solid #fde68a;border-radius:6px;font-size:12px;">
+                        <button onclick="updateReminderTime(${reminder.id})" class="btn btn-small" style="background:#10b981;color:white;">✏️ עדכן</button>
+                        <button onclick="cancelReminder(${reminder.id})" class="btn btn-small btn-delete">❌ בטל</button>
+                    </div>
+                </div>` : ''}
             </div>
         `;
+    }
+
+    function toggleReminderPanel(reminderId, event) {
+        event.stopPropagation();
+        const panel = document.getElementById(`reminderPanel_${reminderId}`);
+        if (panel) panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
     }
 
     // ============================================
@@ -1705,14 +1775,16 @@
 
     async function loadAdminData() {
         try {
-            const [users, codes, sessions] = await Promise.all([
+            const [users, codes, sessions, reminders] = await Promise.all([
                 apiCall('GET', '/api/admin/users'),
                 apiCall('GET', '/api/admin/codes'),
-                apiCall('GET', '/api/sessions/all')
+                apiCall('GET', '/api/sessions/all'),
+                apiCall('GET', '/api/reminders/all')
             ]);
             renderAdminUsers(users);
             renderAdminCodes(codes);
             renderAdminSessions(sessions);
+            renderAdminReminders(reminders);
         } catch(e) {
             showStatus('❌ שגיאה בטעינת נתוני ניהול');
         }
@@ -1794,6 +1866,35 @@
             await apiCall('DELETE', `/api/admin/codes/${codeId}`);
             loadAdminData();
             showStatus('🗑️ הקוד בוטל');
+        } catch(e) {
+            showStatus('❌ שגיאה');
+        }
+    }
+
+    function renderAdminReminders(reminders) {
+        const el = document.getElementById('adminRemindersList');
+        if (!el) return;
+        const statusLabel = {pending:'⏳ ממתין', sent:'✅ נשלח', failed:'❌ נכשל', cancelled:'🚫 בוטל'};
+        el.innerHTML = reminders.map(r => `
+            <div class="admin-row">
+                <div class="admin-row-info">
+                    <strong>${r.task_title}</strong>
+                    <span class="admin-badge ${r.status === 'pending' ? 'badge-active' : r.status === 'sent' ? 'badge-user' : 'badge-inactive'}">${statusLabel[r.status] || r.status}</span>
+                    <br>
+                    <small>👤 ${r.user_name} | 📅 ${new Date(r.scheduled_time).toLocaleString('he-IL', {day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'})}</small>
+                </div>
+                <div class="admin-row-actions">
+                    ${r.status === 'pending' ? `<button onclick="adminCancelReminder(${r.id})" class="btn btn-sm btn-danger">❌ בטל</button>` : ''}
+                </div>
+            </div>
+        `).join('') || '<p style="color:#9ca3af;font-size:13px;">אין תזכורות</p>';
+    }
+
+    async function adminCancelReminder(reminderId) {
+        try {
+            await apiCall('DELETE', `/api/reminders/admin/${reminderId}`);
+            loadAdminData();
+            showStatus('✅ התזכורת בוטלה');
         } catch(e) {
             showStatus('❌ שגיאה');
         }
@@ -1881,6 +1982,12 @@
             <div class="admin-section">
                 <h3 style="color:#374151;margin-bottom:12px;">📊 לוג חיבורים אחרונים</h3>
                 <div id="adminSessionsList"></div>
+            </div>
+
+            <!-- Reminders -->
+            <div class="admin-section">
+                <h3 style="color:#374151;margin-bottom:12px;">🔔 כל התזכורות</h3>
+                <div id="adminRemindersList"></div>
             </div>
 
         </div>
