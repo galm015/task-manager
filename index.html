@@ -42,27 +42,22 @@
     }
 
     .version-info {
-        position: absolute;
-        top: 10px;
-        right: 15px;
-        color: white;
-        background: rgba(102, 126, 234, 0.9);
-        padding: 6px 12px;
-        border-radius: 20px;
-        font-size: 11px;
-        font-weight: 500;
-        text-align: right;
-        line-height: 1.3;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        margin-top: 4px;
     }
 
     .version-number {
-        font-weight: bold;
-        display: block;
+        font-size: 9px;
+        font-weight: 600;
+        color: #9ca3af;
+        line-height: 1.2;
     }
 
     .version-date {
-        opacity: 0.85;
-        font-size: 10px;
+        font-size: 8px;
+        color: #d1d5db;
     }
 
     .header-content {
@@ -602,10 +597,6 @@
 <body>
     <div class="container">
         <div class="header">
-            <div class="version-info">
-                <span class="version-number">v4.5.1</span>
-                <span class="version-date">14.03.2026</span>
-            </div>
             <div class="header-actions">
                 <button onclick="scrollToAddTask()" class="btn btn-add-task btn-icon" title="הוסף משימה">
                     ➕
@@ -617,15 +608,20 @@
                     📤
                     <input type="file" accept=".json" onchange="importData(event)" style="display: none;">
                 </label>
-                <button onclick="openSettings()" class="btn btn-settings btn-icon" title="הגדרות">
-                    ⚙️
-                </button>
+                <div style="display:flex;flex-direction:column;align-items:center;">
+                    <button onclick="openSettings()" class="btn btn-settings btn-icon" title="הגדרות">
+                        ⚙️
+                    </button>
+                    <div class="version-info">
+                        <span class="version-number">v4.6.0</span>
+                    </div>
+                </div>
                 <button id="adminBtn" onclick="openAdminPanel()" class="btn btn-icon" title="ניהול" style="display:none;background:linear-gradient(135deg,#ef4444,#dc2626);color:white;">
                     🛡️
                 </button>
             </div>
             <div class="header-content">
-                <h1>📚 מנהל משימות אישי</h1>
+                <h1>📚 מנהל משימות אישי <span id="userNameDisplay" style="font-size:18px;font-weight:600;background:linear-gradient(135deg,#667eea,#764ba2);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;"></span></h1>
                 <p style="color: #6b7280; margin-top: 10px;">ניהול משימות חכם עם מיזוג אוטומטי</p>
                 <div id="lastSyncDate" class="sync-date hidden"></div>
             </div>
@@ -826,7 +822,7 @@
 
 <script>
     // VERSION INFO
-    const APP_VERSION = '4.5.1';
+    const APP_VERSION = '4.6.0';
     const VERSION_DATE = '14.03.2026';
 
     // ============================================
@@ -1125,6 +1121,7 @@
             localStorage.setItem('taskManagerAccessCode', code);
             closeSettings();
             showStatus(`✅ מחובר כ-${data.name}`);
+            updateUserDisplay(data.name);
             await syncTasksFromServer();
             await checkAdminRole();
             await loadReminders();
@@ -1915,10 +1912,16 @@
     }
 
     // הצג כפתור ניהול אם admin
+    function updateUserDisplay(name) {
+        const el = document.getElementById('userNameDisplay');
+        if (el && name) el.textContent = name;
+    }
+
     async function checkAdminRole() {
         if (!apiToken) return;
         try {
             const me = await apiCall('GET', '/api/users/me');
+            updateUserDisplay(me.name);
             if (me.role === 'admin') {
                 document.getElementById('adminBtn').style.display = 'flex';
             }
