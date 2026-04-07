@@ -1,0 +1,2005 @@
+<!DOCTYPE html>
+
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="description" content="מנהל משימות אישי">
+    <meta name="theme-color" content="#667eea">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="משימות">
+    <title>מנהל משימות אישי</title>
+
+```
+<style>
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        padding: 20px;
+    }
+
+    .container {
+        max-width: 800px;
+        margin: 0 auto;
+    }
+
+    .header {
+        background: white;
+        border-radius: 15px;
+        padding: 25px;
+        margin-bottom: 20px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        position: relative;
+    }
+
+    .version-info {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        margin-top: 4px;
+    }
+
+    .version-number {
+        font-size: 9px;
+        font-weight: 600;
+        color: #9ca3af;
+        line-height: 1.2;
+    }
+
+    .version-date {
+        font-size: 8px;
+        color: #d1d5db;
+    }
+
+    .header-content {
+        padding-left: 200px;
+    }
+
+    .header-actions {
+        position: absolute;
+        top: 20px;
+        left: 20px;
+        display: flex;
+        gap: 8px;
+    }
+
+    .btn-icon {
+        min-width: 44px;
+        height: 44px;
+        padding: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 20px;
+    }
+
+    .btn-add-task {
+        background: #8b5cf6;
+    }
+
+    .btn-add-task:hover {
+        background: #7c3aed;
+    }
+
+    .btn-settings {
+        background: #6b7280;
+    }
+
+    .btn-settings:hover {
+        background: #4b5563;
+    }
+
+    .btn-whatsapp {
+        background: #25d366;
+    }
+
+    .btn-whatsapp:hover {
+        background: #20ba5a;
+    }
+
+    .modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 1000;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .modal.active {
+        display: flex;
+    }
+
+    .modal-content {
+        background: white;
+        border-radius: 15px;
+        padding: 30px;
+        max-width: 500px;
+        width: 90%;
+        max-height: 80vh;
+        overflow-y: auto;
+    }
+
+    .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+    }
+
+    .modal-close {
+        background: #ef4444;
+        color: white;
+        border: none;
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        cursor: pointer;
+        font-size: 18px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .modal-close:hover {
+        background: #dc2626;
+    }
+
+    .settings-group {
+        margin-bottom: 20px;
+    }
+
+    .settings-label {
+        font-weight: bold;
+        display: block;
+        margin-bottom: 8px;
+        color: #374151;
+    }
+
+    .settings-input {
+        width: 100%;
+        padding: 12px;
+        border: 2px solid #e5e7eb;
+        border-radius: 8px;
+        font-size: 16px;
+    }
+
+    .settings-input:focus {
+        outline: none;
+        border-color: #667eea;
+    }
+
+    .settings-hint {
+        font-size: 13px;
+        color: #6b7280;
+        margin-top: 5px;
+    }
+
+    h1 {
+        color: #667eea;
+        font-size: 28px;
+        margin-bottom: 10px;
+    }
+
+    .sync-date {
+        background: #f0fdf4;
+        border: 1px solid #86efac;
+        color: #166534;
+        padding: 8px 12px;
+        border-radius: 8px;
+        font-size: 13px;
+        margin-top: 10px;
+        display: inline-block;
+    }
+
+    .btn {
+        background: #667eea;
+        color: white;
+        border: none;
+        padding: 12px 24px;
+        border-radius: 8px;
+        font-size: 16px;
+        font-weight: bold;
+        cursor: pointer;
+        transition: all 0.3s;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .btn:hover {
+        background: #5568d3;
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+    }
+
+    .btn:active {
+        transform: translateY(0);
+    }
+
+    .btn-secondary {
+        background: #10b981;
+    }
+
+    .btn-secondary:hover {
+        background: #059669;
+    }
+
+    .btn-delete {
+        background: #ef4444;
+    }
+
+    .btn-delete:hover {
+        background: #dc2626;
+    }
+
+    .btn-orange {
+        background: #f59e0b;
+    }
+
+    .btn-orange:hover {
+        background: #d97706;
+    }
+
+    .btn-small {
+        padding: 8px 16px;
+        font-size: 14px;
+    }
+
+    .sync-section {
+        display: none;
+    }
+
+    .sync-buttons {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+
+    .list-selector {
+        background: white;
+        border-radius: 15px;
+        padding: 20px;
+        margin-bottom: 20px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    }
+
+    .list-control {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 15px;
+    }
+
+    select, input, textarea {
+        width: 100%;
+        padding: 12px;
+        border: 2px solid #e5e7eb;
+        border-radius: 8px;
+        font-size: 16px;
+        margin-bottom: 10px;
+        transition: border-color 0.3s;
+    }
+
+    select:focus, input:focus, textarea:focus {
+        outline: none;
+        border-color: #667eea;
+    }
+
+    .task-form {
+        background: white;
+        border-radius: 15px;
+        padding: 25px;
+        margin-bottom: 20px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    }
+
+    .filter-section {
+        background: white;
+        border-radius: 15px;
+        padding: 15px;
+        margin-bottom: 20px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    }
+
+    .filter-row {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 10px;
+    }
+
+    .filter-row select {
+        margin-bottom: 0;
+    }
+
+    .task-item {
+        background: white;
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 15px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        border-right: 5px solid #667eea;
+        transition: all 0.3s;
+        cursor: pointer;
+    }
+
+    .task-item:hover {
+        transform: translateX(-5px);
+        box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+    }
+
+    .task-item.completed {
+        opacity: 0.6;
+        border-right-color: #10b981;
+    }
+
+    .task-item.deleted {
+        opacity: 0.5;
+        border-right-color: #ef4444;
+        background: #fef2f2;
+    }
+
+    .task-item.selected {
+        border: 3px solid #667eea;
+    }
+
+    .task-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 10px;
+    }
+
+    .task-title {
+        font-size: 18px;
+        font-weight: bold;
+        flex: 1;
+        padding-left: 10px;
+    }
+
+    .task-title.completed {
+        text-decoration: line-through;
+        color: #6b7280;
+    }
+
+    .task-meta {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        margin-top: 10px;
+    }
+
+    .badge {
+        padding: 5px 12px;
+        border-radius: 20px;
+        font-size: 13px;
+        font-weight: bold;
+    }
+
+    .badge-category {
+        background: #dbeafe;
+        color: #1e40af;
+    }
+
+    .badge-priority-גבוה {
+        background: #fee2e2;
+        color: #991b1b;
+    }
+
+    .badge-priority-רגיל {
+        background: #dbeafe;
+        color: #1e40af;
+    }
+
+    .badge-priority-נמוך {
+        background: #f3f4f6;
+        color: #374151;
+    }
+
+    .task-notes {
+        background: #fef3c7;
+        padding: 12px;
+        border-radius: 8px;
+        margin-top: 10px;
+        font-size: 14px;
+        white-space: pre-wrap;
+    }
+
+    .task-actions {
+        display: flex;
+        gap: 10px;
+    }
+
+    .hidden {
+        display: none;
+    }
+
+    .status-message {
+        background: #dbeafe;
+        color: #1e40af;
+        padding: 12px;
+        border-radius: 8px;
+        margin-bottom: 15px;
+        text-align: center;
+        font-weight: bold;
+    }
+
+    .stats {
+        display: flex;
+        gap: 15px;
+        margin-bottom: 15px;
+        flex-wrap: wrap;
+    }
+
+    .stat-item {
+        background: #f3f4f6;
+        padding: 8px 15px;
+        border-radius: 8px;
+        font-size: 14px;
+    }
+
+    .notes-section {
+        background: white;
+        border-radius: 15px;
+        padding: 20px;
+        margin-bottom: 20px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    }
+
+    @media (max-width: 600px) {
+        body {
+            padding: 10px;
+        }
+        
+        h1 {
+            font-size: 22px;
+        }
+
+        .header {
+            padding: 20px 15px;
+            padding-top: 50px;
+        }
+
+        .version-info {
+            top: 10px;
+            right: 10px;
+            font-size: 10px;
+            padding: 5px 10px;
+        }
+
+        .version-date {
+            font-size: 9px;
+        }
+
+        .header-content {
+            padding-left: 0;
+            padding-top: 0;
+        }
+
+        .header-actions {
+            position: static;
+            margin-bottom: 15px;
+            gap: 8px;
+        }
+
+        .btn-icon {
+            flex: 1;
+            min-width: auto;
+        }
+
+        .sync-date {
+            font-size: 11px;
+            padding: 6px 10px;
+        }
+
+        .list-selector, .filter-section, .task-form, .notes-section {
+            padding: 15px;
+        }
+
+        .btn-small {
+            padding: 10px 14px;
+            font-size: 13px;
+        }
+
+        .task-item {
+            padding: 15px;
+        }
+
+        .task-title {
+            font-size: 16px;
+        }
+
+        .task-meta {
+            gap: 8px;
+        }
+
+        .badge {
+            font-size: 11px;
+            padding: 4px 10px;
+        }
+
+        .stats {
+            gap: 8px;
+        }
+
+        .stat-item {
+            font-size: 12px;
+            padding: 6px 10px;
+        }
+
+        select, input, textarea {
+            font-size: 16px;
+        }
+
+        .task-actions {
+            flex-direction: row;
+            gap: 8px;
+        }
+
+        .task-actions .btn-small {
+            flex: 1;
+        }
+    }
+
+    /* Admin Panel */
+    .admin-section {
+        background: #f9fafb;
+        border-radius: 12px;
+        padding: 16px;
+        margin-bottom: 16px;
+        border: 1px solid #e5e7eb;
+    }
+    .admin-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px;
+        background: white;
+        border-radius: 8px;
+        margin-bottom: 8px;
+        border: 1px solid #e5e7eb;
+        gap: 10px;
+    }
+    .admin-row-info { flex: 1; font-size: 13px; line-height: 1.8; }
+    .admin-row-actions { flex-shrink: 0; }
+    .admin-badge {
+        display: inline-block;
+        padding: 2px 8px;
+        border-radius: 4px;
+        font-size: 11px;
+        font-weight: 600;
+        margin-right: 4px;
+    }
+    .badge-admin   { background: #fef3c7; color: #92400e; }
+    .badge-user    { background: #ede9fe; color: #5b21b6; }
+    .badge-active  { background: #d1fae5; color: #065f46; }
+    .badge-inactive{ background: #fee2e2; color: #991b1b; }
+    .btn-sm { padding: 6px 12px; font-size: 12px; }
+    .btn-danger  { background: #ef4444; color: white; border: none; border-radius: 8px; cursor: pointer; }
+    .btn-success { background: #10b981; color: white; border: none; border-radius: 8px; cursor: pointer; }
+    code { background: #f3f4f6; padding: 2px 6px; border-radius: 4px; font-family: monospace; }
+</style>
+```
+
+</head>
+<body>
+<div style="position:fixed;top:0;left:0;right:0;z-index:9999;background:linear-gradient(90deg,#f59e0b,#d97706);color:white;text-align:center;padding:8px;font-family:Heebo,sans-serif;font-size:13px;font-weight:700;letter-spacing:1px;box-shadow:0 2px 8px rgba(0,0,0,0.2);">
+    🚧 &nbsp;סביבת פיתוח &nbsp;|&nbsp; dev.galmichal.com &nbsp;|&nbsp; נתוני בדיקה בלבד &nbsp;🚧
+</div>
+<div style="height:36px;"></div>
+    <div class="container">
+        <div class="header">
+            <div class="header-actions">
+                <button onclick="scrollToAddTask()" class="btn btn-add-task btn-icon" title="הוסף משימה">
+                    ➕
+                </button>
+                <button onclick="exportData()" class="btn btn-secondary btn-icon" title="ייצא לקובץ">
+                    📥
+                </button>
+                <label class="btn btn-orange btn-icon" style="margin: 0; cursor: pointer;" title="ייבא מקובץ">
+                    📤
+                    <input type="file" accept=".json" onchange="importData(event)" style="display: none;">
+                </label>
+                <div style="display:flex;flex-direction:column;align-items:center;">
+                    <button onclick="openSettings()" class="btn btn-settings btn-icon" title="הגדרות">
+                        ⚙️
+                    </button>
+                    <div class="version-info">
+                        <span class="version-number">v4.6.1-dev</span>
+                    </div>
+                </div>
+                <button id="adminBtn" onclick="openAdminPanel()" class="btn btn-icon" title="ניהול" style="display:none;background:linear-gradient(135deg,#ef4444,#dc2626);color:white;">
+                    🛡️
+                </button>
+            </div>
+            <div class="header-content">
+                <h1>📚 מנהל משימות אישי <span id="userNameDisplay" style="font-size:18px;font-weight:600;background:linear-gradient(135deg,#667eea,#764ba2);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;"></span></h1>
+                <p style="color: #6b7280; margin-top: 10px;">ניהול משימות חכם עם מיזוג אוטומטי</p>
+                <div id="lastSyncDate" class="sync-date hidden"></div>
+            </div>
+        </div>
+
+```
+    <div id="statusMessage"></div>
+
+    <!-- Settings Modal -->
+    <div id="settingsModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 style="color: #667eea; margin: 0;">⚙️ הגדרות</h2>
+                <button onclick="closeSettings()" class="modal-close">✕</button>
+            </div>
+            
+            <div class="settings-group">
+                <label class="settings-label">🔑 קוד גישה</label>
+                <input 
+                    type="text" 
+                    id="accessCode" 
+                    class="settings-input" 
+                    placeholder="הכנס קוד גישה שקיבלת"
+                    dir="ltr"
+                    maxlength="20"
+                >
+                <p class="settings-hint">קוד גישה אישי שקיבלת מהמנהל</p>
+            </div>
+
+            <div class="settings-group">
+                <label class="settings-label">📱 מספר טלפון לתזכורות WhatsApp</label>
+                <input 
+                    type="tel" 
+                    id="phoneNumber" 
+                    class="settings-input" 
+                    placeholder="972501234567"
+                    dir="ltr"
+                >
+                <p class="settings-hint">מספר עם קידומת מדינה ללא + (ישראל: 972XXXXXXXXX)</p>
+            </div>
+
+            <button onclick="saveSettings()" class="btn" style="width: 100%;">
+                💾 שמור הגדרות
+            </button>
+            <button onclick="logout()" class="btn" style="width: 100%; margin-top: 10px; background: #fee2e2; color: #991b1b;">
+                🚪 התנתק
+            </button>
+        </div>
+    </div>
+
+    <!-- Tasks List (Active) -->
+    <div id="tasksList"></div>
+
+    <!-- Reminder Modal -->
+    <div id="reminderModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 style="color: #25d366; margin: 0;">📱 תזכורת WhatsApp</h2>
+                <button onclick="closeReminderModal()" class="modal-close">✕</button>
+            </div>
+            <input type="hidden" id="reminderTaskId">
+            <p style="color: #374151; margin-bottom: 15px;">
+                משימה: <strong id="reminderTaskTitle"></strong>
+            </p>
+            <div class="settings-group">
+                <label class="settings-label">⏰ מתי לשלוח?</label>
+                <input type="datetime-local" id="reminderTime" class="settings-input" dir="ltr">
+            </div>
+            <div style="display: flex; gap: 10px; margin-top: 10px;">
+                <button onclick="sendReminder(false)" class="btn btn-whatsapp" style="flex: 1;">
+                    ⏰ תזמן שליחה
+                </button>
+                <button onclick="sendReminder(true)" class="btn btn-secondary" style="flex: 1;">
+                    📤 שלח עכשיו
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sync Section -->
+    <div class="sync-section">
+        <h2 style="margin-bottom: 15px;">💾 גיבוי וסנכרון</h2>
+        <div class="sync-buttons">
+            <button onclick="exportData()" class="btn btn-secondary">
+                📥 ייצא לקובץ
+            </button>
+            <label class="btn btn-orange" style="margin: 0; cursor: pointer;">
+                📤 ייבא מקובץ (מיזוג חכם)
+                <input type="file" accept=".json" onchange="importData(event)" style="display: none;">
+            </label>
+        </div>
+        <p style="color: #6b7280; font-size: 14px; margin-top: 10px;">
+            💡 הייבוא מזהה שינויים חדשים ומשלב אותם אוטומטית ללא מחיקת נתונים
+        </p>
+    </div>
+
+    <!-- List Selector -->
+    <div class="list-selector">
+        <label style="font-weight: bold; display: block; margin-bottom: 10px;">📋 בחר רשימה:</label>
+        <div class="list-control">
+            <select id="listSelector" onchange="loadTasks()" style="flex: 1;">
+                <option value="כללי">כללי</option>
+            </select>
+            <button onclick="showDeleteListConfirm()" class="btn btn-delete btn-small">🗑️</button>
+        </div>
+        <button onclick="showNewListForm()" class="btn btn-secondary" style="width: 100%;">
+            + רשימה חדשה
+        </button>
+        <div id="newListForm" class="hidden" style="margin-top: 15px;">
+            <input type="text" id="newListName" placeholder="שם הרשימה החדשה...">
+            <div style="display: flex; gap: 10px;">
+                <button onclick="createNewList()" class="btn btn-secondary" style="flex: 1;">יצירה</button>
+                <button onclick="hideNewListForm()" class="btn" style="flex: 1; background: #6b7280;">ביטול</button>
+            </div>
+        </div>
+        <div id="deleteListConfirm" class="hidden" style="margin-top: 15px; padding: 15px; background: #fee2e2; border-radius: 8px;">
+            <p style="color: #991b1b; font-weight: bold; margin-bottom: 10px;">
+                ⚠️ האם אתה בטוח שברצונך למחוק את הרשימה?
+            </p>
+            <div style="display: flex; gap: 10px;">
+                <button onclick="deleteList()" class="btn btn-delete" style="flex: 1;">כן, מחק</button>
+                <button onclick="hideDeleteListConfirm()" class="btn" style="flex: 1; background: #6b7280;">ביטול</button>
+            </div>
+        </div>
+        <div class="stats" style="margin-top: 15px;">
+            <span class="stat-item">✅ הושלמו: <strong id="completedCount">0</strong></span>
+            <span class="stat-item">⏳ פעילות: <strong id="activeCount">0</strong></span>
+            <span class="stat-item">📊 סה"כ: <strong id="totalCount">0</strong></span>
+        </div>
+    </div>
+
+    <!-- Filter Section -->
+    <div class="filter-section">
+        <label style="font-weight: bold; display: block; margin-bottom: 10px;">🔍 סינון:</label>
+        <div class="filter-row">
+            <select id="filterCategory" onchange="renderTasks()" style="flex: 1;">
+                <option value="הכל">כל הקטגוריות</option>
+                <option value="כללי">כללי</option>
+                <option value="רפואי">רפואי</option>
+                <option value="בית">בית</option>
+                <option value="משפחה">משפחה</option>
+                <option value="טיולים">טיולים</option>
+            </select>
+            <select id="filterStatus" onchange="renderTasks()" style="flex: 1;">
+                <option value="active">רק פעילות</option>
+                <option value="completed">רק הושלמו</option>
+                <option value="deleted">רק נמחקו</option>
+                <option value="all">הכל</option>
+            </select>
+        </div>
+    </div>
+
+    <!-- Tasks List -->
+    <div id="tasksList"></div>
+
+    <!-- Task Form -->
+    <div class="task-form">
+        <h2 style="margin-bottom: 15px;" id="formTitle">➕ משימה חדשה</h2>
+        <input type="text" id="taskTitle" placeholder="תיאור המשימה...">
+        
+        <select id="taskCategory">
+            <option value="כללי">כללי</option>
+            <option value="רפואי">רפואי</option>
+            <option value="בית">בית</option>
+            <option value="משפחה">משפחה</option>
+            <option value="טיולים">טיולים</option>
+        </select>
+
+        <select id="taskPriority">
+            <option value="רגיל">עדיפות רגילה</option>
+            <option value="גבוה">עדיפות גבוהה</option>
+            <option value="נמוך">עדיפות נמוכה</option>
+        </select>
+
+        <textarea id="taskNotes" placeholder="הערות (אופציונלי)" rows="3"></textarea>
+
+        <div style="display:flex;gap:10px;align-items:center;background:#f9fafb;border:1px solid #e5e7eb;border-radius:10px;padding:10px;margin-bottom:5px;">
+            <label style="color:#6b7280;font-size:13px;white-space:nowrap;">📅 תאריך יעד:</label>
+            <input type="datetime-local" id="taskDueDate" style="flex:1;border:none;background:transparent;font-size:13px;color:#374151;">
+            <button onclick="document.getElementById('taskDueDate').value=''" style="background:none;border:none;cursor:pointer;color:#9ca3af;font-size:16px;" title="נקה">✕</button>
+        </div>
+
+        <div style="display: flex; gap: 10px;">
+            <button onclick="saveTask()" class="btn" style="flex: 1;" id="saveBtn">➕ הוסף משימה</button>
+            <button onclick="cancelEdit()" class="btn hidden" style="flex: 1; background: #6b7280;" id="cancelBtn">ביטול</button>
+        </div>
+    </div>
+
+    <!-- Notes Section -->
+    <div class="notes-section">
+        <h2 style="margin-bottom: 15px;">📝 הערות והדבקות</h2>
+        <textarea id="generalNotes" placeholder="כתוב כאן הערות כלליות, רעיונות, קישורים..." style="min-height: 150px;"></textarea>
+        <p style="color: #6b7280; font-size: 14px; margin-top: 10px;">
+            ההערות נשמרות אוטומטית ✓
+        </p>
+    </div>
+</div>
+
+<script>
+    // VERSION INFO
+    const APP_VERSION = '4.6.1-dev';
+    const VERSION_DATE = '14.03.2026';
+
+    // ============================================
+    // API Configuration
+    // ============================================
+    const API_URL = 'http://dev.galmichal.com';
+    let apiToken = localStorage.getItem('taskManagerApiToken') || null;
+    let apiUserId = localStorage.getItem('taskManagerApiUserId') || null;
+
+    let activeReminders = []; // תזכורות פעילות
+
+    async function loadReminders() {
+        if (!apiToken) return;
+        try {
+            const all = await apiCall('GET', '/api/reminders/');
+            activeReminders = all.filter(r => r.status === 'pending');
+        } catch(e) {
+            console.warn('Failed to load reminders:', e.message);
+        }
+    }
+
+    function getTaskReminder(task) {
+        return activeReminders.find(r => r.task_id === task.serverId || r.task_id === task.id);
+    }
+
+    async function cancelReminder(reminderId) {
+        try {
+            await apiCall('DELETE', `/api/reminders/${reminderId}`);
+            await loadReminders();
+            renderTasks();
+            showStatus('✅ התזכורת בוטלה');
+        } catch(e) {
+            showStatus('❌ שגיאה בביטול');
+        }
+    }
+
+    async function updateReminderTime(reminderId) {
+        const timeStr = document.getElementById(`reminderEdit_${reminderId}`).value;
+        if (!timeStr) { showStatus('⚠️ בחר זמן'); return; }
+        try {
+            await apiCall('PUT', `/api/reminders/${reminderId}`, {
+                scheduled_time: new Date(timeStr).toISOString()
+            });
+            await loadReminders();
+            renderTasks();
+            showStatus('✅ התזכורת עודכנה');
+        } catch(e) {
+            showStatus('❌ שגיאה בעדכון');
+        }
+    }
+
+    async function apiCall(method, path, body = null) {
+        const headers = { 'Content-Type': 'application/json' };
+        if (apiToken) headers['Authorization'] = `Bearer ${apiToken}`;
+        const opts = { method, headers };
+        if (body) opts.body = JSON.stringify(body);
+        const res = await fetch(`${API_URL}${path}`, opts);
+        if (!res.ok) {
+            const err = await res.json().catch(() => ({}));
+            throw new Error(err.detail || `שגיאת שרת ${res.status}`);
+        }
+        return res.json();
+    }
+
+    async function loginToServer(code, phone) {
+        const data = await apiCall('POST', '/api/users/login', { access_code: code, phone });
+        apiToken = data.token;
+        apiUserId = data.user_id;
+        localStorage.setItem('taskManagerApiToken', apiToken);
+        localStorage.setItem('taskManagerApiUserId', String(apiUserId));
+        return data;
+    }
+
+    async function syncTasksFromServer() {
+        if (!apiToken) return;
+        try {
+            const serverTasks = await apiCall('GET', '/api/tasks/');
+            // החלף הכל בנתונים מהשרת
+            tasks = serverTasks.map(st => ({
+                id: st.external_id ? parseInt(st.external_id) : st.id,
+                title: st.title,
+                notes: st.notes || '',
+                category: st.category,
+                priority: st.priority,
+                listName: st.list_name,
+                completed: st.completed,
+                deleted: st.deleted,
+                createdAt: st.created_at,
+                dueDate: st.due_date ? new Date(st.due_date).toISOString().slice(0,16) : null,
+                serverId: st.id
+            }));
+            // בנה רשימות מהמשימות
+            const serverLists = [...new Set(tasks.map(t => t.list_name || t.listName).filter(Boolean))];
+            if (serverLists.length > 0) lists = serverLists;
+            updateListSelector();
+            updateNotesTextarea();
+            renderTasks();
+            updateStats();
+            showStatus('✅ סונכרן עם השרת');
+        } catch(e) {
+            showStatus('❌ שגיאת חיבור לשרת');
+            console.warn('Sync failed:', e.message);
+        }
+    }
+
+    async function pushTaskToServer(task) {
+        if (!apiToken) return;
+        try {
+            const result = await apiCall('POST', '/api/tasks/', {
+                title: task.title,
+                notes: task.notes || '',
+                category: task.category,
+                priority: task.priority,
+                list_name: task.listName,
+                external_id: String(task.id),
+                due_date: task.dueDate || null
+            });
+            task.serverId = result.id;
+            saveToLocal();
+        } catch(e) {
+            console.warn('Push failed:', e.message);
+        }
+    }
+
+    async function updateTaskOnServer(task) {
+        if (!apiToken || !task.serverId) return;
+        try {
+            await apiCall('PUT', `/api/tasks/${task.serverId}`, {
+                title: task.title,
+                notes: task.notes || '',
+                category: task.category,
+                priority: task.priority,
+                list_name: task.listName,
+                completed: task.completed,
+                deleted: task.deleted,
+                due_date: task.dueDate || null
+            });
+        } catch(e) {
+            console.warn('Update failed:', e.message);
+        }
+    }
+
+    async function scheduleReminderOnServer(task, scheduledTime) {
+        if (!apiToken) return false;
+        try {
+            await apiCall('POST', '/api/reminders/', {
+                task_id: task.serverId || null,
+                task_title: task.title,
+                task_notes: task.notes || '',
+                scheduled_time: scheduledTime
+            });
+            return true;
+        } catch(e) {
+            console.warn('Reminder failed:', e.message);
+            return false;
+        }
+    }
+
+    let tasks = [];
+    let lists = ['כללי'];
+    let currentList = 'כללי';
+    let editingTaskId = null;
+    let listNotes = {};
+    let lastSyncDate = null;
+    let userPhone = '';
+    let accessCode = '';
+
+    // Load data on startup
+    window.onload = async () => {
+        // נקה נתונים ישנים מ-localStorage
+        localStorage.removeItem('taskManagerTasks');
+        localStorage.removeItem('taskManagerLists');
+        localStorage.removeItem('taskManagerListNotes');
+        localStorage.removeItem('taskManagerLastSync');
+        localStorage.removeItem('mathWebsiteTasks');
+        localStorage.removeItem('mathWebsiteLists');
+        localStorage.removeItem('mathWebsiteListNotes');
+        localStorage.removeItem('mathWebsiteNotes');
+        localStorage.removeItem('mathWebsiteLastSync');
+
+        loadFromLocal();
+        updateListSelector();
+        updateNotesTextarea();
+        renderTasks();
+        updateStats();
+
+        if (apiToken) {
+            await syncTasksFromServer();
+            await checkAdminRole();
+            await loadReminders();
+            renderTasks();
+        } else {
+            showStatus('⚠️ נא להתחבר בהגדרות ⚙️');
+        }
+    };
+
+    function loadFromLocal() {
+        // טוען רק הגדרות משתמש — נתונים מגיעים מהשרת
+        const savedPhone = localStorage.getItem('taskManagerUserPhone');
+        if (savedPhone) userPhone = savedPhone;
+
+        const savedCode = localStorage.getItem('taskManagerAccessCode');
+        if (savedCode) accessCode = savedCode;
+    }
+
+    function saveToLocal() {
+        // שומר רק הגדרות — נתונים נשמרים בשרת
+        localStorage.setItem('taskManagerUserPhone', userPhone);
+        localStorage.setItem('taskManagerAccessCode', accessCode);
+    }
+
+    function updateSyncDate() {
+        const syncDateEl = document.getElementById('lastSyncDate');
+        if (lastSyncDate) {
+            const date = new Date(lastSyncDate);
+            syncDateEl.textContent = `📥 ייבוא אחרון: ${date.toLocaleDateString('he-IL')} ${date.toLocaleTimeString('he-IL', {hour: '2-digit', minute: '2-digit'})}`;
+            syncDateEl.classList.remove('hidden');
+        }
+    }
+
+    function updateNotesTextarea() {
+        const notesEl = document.getElementById('generalNotes');
+        notesEl.value = listNotes[currentList] || '';
+    }
+
+    document.getElementById('generalNotes').addEventListener('input', (e) => {
+        listNotes[currentList] = e.target.value;
+        saveToLocal();
+    });
+
+    function showStatus(message) {
+        const statusDiv = document.getElementById('statusMessage');
+        statusDiv.innerHTML = `<div class="status-message">${message}</div>`;
+        setTimeout(() => {
+            statusDiv.innerHTML = '';
+        }, 3000);
+    }
+
+    function scrollToAddTask() {
+        // Cancel any existing edit
+        cancelEdit();
+        
+        // Scroll to task form
+        const taskForm = document.querySelector('.task-form');
+        taskForm.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        
+        // Focus on the task title input
+        setTimeout(() => {
+            document.getElementById('taskTitle').focus();
+        }, 500);
+    }
+
+    function openSettings() {
+        document.getElementById('phoneNumber').value = userPhone;
+        document.getElementById('accessCode').value = accessCode;
+        document.getElementById('settingsModal').classList.add('active');
+    }
+
+    function logout() {
+        if (!confirm('האם אתה בטוח שברצונך להתנתק?')) return;
+        localStorage.removeItem('taskManagerApiToken');
+        localStorage.removeItem('taskManagerApiUserId');
+        localStorage.removeItem('taskManagerUserPhone');
+        localStorage.removeItem('taskManagerAccessCode');
+        apiToken = null;
+        apiUserId = null;
+        userPhone = '';
+        accessCode = '';
+        adminAuthenticated = false;
+        tasks = [];
+        lists = ['כללי'];
+        document.getElementById('adminBtn').style.display = 'none';
+        closeSettings();
+        renderTasks();
+        updateStats();
+        showStatus('👋 התנתקת בהצלחה');
+    }
+
+    function closeSettings() {
+        document.getElementById('settingsModal').classList.remove('active');
+    }
+
+    async function saveSettings() {
+        const phone = document.getElementById('phoneNumber').value.trim();
+        const code  = document.getElementById('accessCode').value.trim();
+
+        if (!code) { showStatus('⚠️ נא להזין קוד גישה'); return; }
+        if (!phone) { showStatus('⚠️ נא להזין מספר טלפון'); return; }
+
+        showStatus('⏳ מתחבר לשרת...');
+        try {
+            const data = await loginToServer(code, phone);
+            userPhone  = phone;
+            accessCode = code;
+            localStorage.setItem('taskManagerUserPhone', phone);
+            localStorage.setItem('taskManagerAccessCode', code);
+            closeSettings();
+            showStatus(`✅ מחובר כ-${data.name}`);
+            updateUserDisplay(data.name);
+            await syncTasksFromServer();
+            await checkAdminRole();
+            await loadReminders();
+            renderTasks();
+        } catch(e) {
+            showStatus(`❌ ${e.message}`);
+        }
+    }
+
+    function sendToWhatsApp(taskId, event) {
+        event.stopPropagation();
+        const task = tasks.find(t => t.id === taskId);
+        if (!task) return;
+
+        if (!userPhone) {
+            openSettings();
+            showStatus('⚠️ נא להגדיר מספר טלפון תחילה');
+            return;
+        }
+
+        openReminderModal(task);
+    }
+
+    function openReminderModal(task) {
+        // הגדר זמן ברירת מחדל — שעה מעכשיו
+        const defaultTime = new Date(Date.now() + 60 * 60 * 1000);
+        const pad = n => String(n).padStart(2, '0');
+        const defaultStr = `${defaultTime.getFullYear()}-${pad(defaultTime.getMonth()+1)}-${pad(defaultTime.getDate())}T${pad(defaultTime.getHours())}:${pad(defaultTime.getMinutes())}`;
+        
+        document.getElementById('reminderTaskId').value = task.id;
+        document.getElementById('reminderTaskTitle').textContent = task.title;
+        document.getElementById('reminderTime').value = defaultStr;
+        document.getElementById('reminderModal').classList.add('active');
+    }
+
+    function closeReminderModal() {
+        document.getElementById('reminderModal').classList.remove('active');
+    }
+
+    // קריאה ל-GAS — no-cors עוקף CORS אבל לא מחזיר response
+    // לכן ולידציה נעשית locally, והשליחה היא fire-and-forget
+    async function callGAS(payload) {
+        try {
+            await fetch(GAS_URL, {
+                method: 'POST',
+                mode: 'no-cors',
+                body: JSON.stringify(payload)
+            });
+            return { success: true };
+        } catch (err) {
+            console.error('GAS call failed:', err);
+            throw err;
+        }
+    }
+
+    // ולידציה מקומית של קוד גישה
+    // הקוד נשמר ב-localStorage ומאומת בעת שימוש
+    // ולידציה אמיתית מול השרת — GAS ידחה בקשות עם קוד שגוי
+    function validateCodeLocally(code) {
+        return code && code.length >= 6;
+    }
+
+    async function sendReminder(sendNow = false) {
+        const taskId = document.getElementById('reminderTaskId').value;
+        const task = tasks.find(t => String(t.id) === String(taskId));
+        if (!task) { showStatus('❌ משימה לא נמצאה'); return; }
+
+        if (!accessCode) {
+            closeReminderModal();
+            openSettings();
+            showStatus('⚠️ נא להגדיר קוד גישה תחילה');
+            return;
+        }
+
+        if (!userPhone) {
+            closeReminderModal();
+            openSettings();
+            showStatus('⚠️ נא להגדיר מספר טלפון תחילה');
+            return;
+        }
+
+        const scheduledTime = sendNow
+            ? new Date().toISOString()
+            : new Date(document.getElementById('reminderTime').value).toISOString();
+
+        try {
+            closeReminderModal();
+            const ok = await scheduleReminderOnServer(task, scheduledTime);
+            if (ok) {
+                showStatus(sendNow ? '✅ התזכורת נשלחה!' : '✅ התזכורת תישלח בזמן הנקוב');
+            } else {
+                showStatus('⚠️ שגיאה בשמירת התזכורת — בדוק חיבור');
+            }
+        } catch (err) {
+            showStatus('❌ שגיאת חיבור לשרת');
+        }
+    }
+
+    function exportData() {
+        const dataToExport = {
+            tasks,
+            lists,
+            listNotes,
+            exportDate: new Date().toISOString(),
+            version: APP_VERSION
+        };
+
+        const dataStr = JSON.stringify(dataToExport, null, 2);
+        const dataBlob = new Blob([dataStr], { type: 'application/json' });
+        const url = URL.createObjectURL(dataBlob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `tasks-backup-${new Date().toISOString().split('T')[0]}.json`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+        
+        showStatus('✅ הקובץ הורד בהצלחה!');
+    }
+
+    function triggerImport() {
+        const input = document.getElementById('importFileInput');
+        input.value = '';
+        input.onchange = importData;
+        input.click();
+    }
+
+    function importData(event) {
+        const file = event.target.files && event.target.files[0];
+        if (!file) {
+            showStatus('❌ לא נבחר קובץ');
+            return;
+        }
+
+        showStatus('⏳ קורא קובץ: ' + file.name);
+
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            try {
+                const importedData = JSON.parse(e.target.result);
+                
+                if (importedData.tasks && importedData.lists) {
+                    const merged = mergeData(importedData);
+                    
+                    tasks = merged.tasks;
+                    lists = merged.lists;
+                    
+                    if (importedData.listNotes) {
+                        listNotes = { ...listNotes, ...importedData.listNotes };
+                    } else if (importedData.notes) {
+                        if (!listNotes[lists[0]]) {
+                            listNotes[lists[0]] = importedData.notes;
+                        }
+                    }
+                    
+                    lastSyncDate = new Date().toISOString();
+                    localStorage.setItem('taskManagerLastSync', lastSyncDate);
+                    
+                    saveToLocal();
+                    updateListSelector();
+                    updateNotesTextarea();
+                    renderTasks();
+                    updateStats();
+                    updateSyncDate();
+                    
+                    showStatus(`✅ המיזוג הושלם! נוספו ${merged.addedCount} משימות, ${lists.length} רשימות`);
+                } else {
+                    showStatus(`❌ קובץ לא תקין — מפתחות: ${Object.keys(importedData).join(', ')}`);
+                }
+            } catch (error) {
+                showStatus(`❌ שגיאה: ${error.message}`);
+            }
+        };
+        reader.onerror = () => showStatus('❌ שגיאה בקריאת הקובץ');
+        reader.readAsText(file);
+    }
+
+    function mergeData(importedData) {
+        // Create a map of existing tasks by ID
+        const existingTasksMap = new Map(tasks.map(t => [t.id, t]));
+        let addedCount = 0;
+        let updatedCount = 0;
+        
+        // Merge tasks
+        const mergedTasks = [...tasks];
+        
+        importedData.tasks.forEach(importedTask => {
+            const existingTask = existingTasksMap.get(importedTask.id);
+            
+            if (!existingTask) {
+                // New task - add it (including deleted tasks)
+                mergedTasks.push({
+                    ...importedTask,
+                    deleted: importedTask.deleted || false
+                });
+                addedCount++;
+            } else {
+                // Task exists - check which is newer or has different status
+                const importedDate = new Date(importedTask.createdAt || 0);
+                const existingDate = new Date(existingTask.createdAt || 0);
+                
+                // If deleted status differs, use the one that's deleted (preserve deletions)
+                const shouldUpdate = 
+                    importedTask.deleted !== existingTask.deleted ||
+                    importedTask.completed !== existingTask.completed ||
+                    importedDate > existingDate;
+                
+                if (shouldUpdate) {
+                    const index = mergedTasks.findIndex(t => t.id === importedTask.id);
+                    if (index !== -1) {
+                        mergedTasks[index] = {
+                            ...importedTask,
+                            deleted: importedTask.deleted || false
+                        };
+                        updatedCount++;
+                    }
+                }
+            }
+        });
+        
+        // Merge lists — גם מהרשימה וגם מתוך המשימות עצמן
+        const listsFromTasks = mergedTasks.map(t => t.listName).filter(Boolean);
+        const mergedLists = [...new Set([...lists, ...importedData.lists, ...listsFromTasks])];
+        
+        return {
+            tasks: mergedTasks,
+            lists: mergedLists,
+            addedCount,
+            updatedCount
+        };
+    }
+
+    function showNewListForm() {
+        document.getElementById('newListForm').classList.remove('hidden');
+    }
+
+    function hideNewListForm() {
+        document.getElementById('newListForm').classList.add('hidden');
+        document.getElementById('newListName').value = '';
+    }
+
+    function createNewList() {
+        const name = document.getElementById('newListName').value.trim();
+        if (!name) {
+            showStatus('❌ נא להזין שם רשימה');
+            return;
+        }
+        if (lists.includes(name)) {
+            showStatus('❌ רשימה עם שם זה כבר קיימת');
+            return;
+        }
+        
+        lists.push(name);
+        currentList = name;
+        listNotes[name] = ''; // Initialize empty notes for new list
+        saveToLocal();
+        updateListSelector();
+        updateNotesTextarea();
+        hideNewListForm();
+        renderTasks();
+        showStatus('✅ הרשימה נוצרה בהצלחה');
+    }
+
+    function showDeleteListConfirm() {
+        if (lists.length <= 1) {
+            showStatus('❌ לא ניתן למחוק - חייבת להישאר לפחות רשימה אחת');
+            return;
+        }
+        document.getElementById('deleteListConfirm').classList.remove('hidden');
+    }
+
+    function hideDeleteListConfirm() {
+        document.getElementById('deleteListConfirm').classList.add('hidden');
+    }
+
+    async function deleteList() {
+        const tasksInList = tasks.filter(t => t.listName === currentList && !t.deleted);
+        
+        if (tasksInList.length > 0) {
+            if (!confirm(`הרשימה "${currentList}" מכילה ${tasksInList.length} משימות פעילות. האם אתה בטוח?`)) {
+                hideDeleteListConfirm();
+                return;
+            }
+        }
+
+        const listToDelete = currentList;
+        lists = lists.filter(l => l !== currentList);
+        
+        // סמן כנמחק מקומית ושלח לשרת
+        const deletePromises = [];
+        tasks.forEach(task => {
+            if (task.listName === listToDelete) {
+                task.deleted = true;
+                deletePromises.push(updateTaskOnServer(task));
+            }
+        });
+        await Promise.all(deletePromises);
+        
+        // Delete notes for this list
+        delete listNotes[listToDelete];
+        
+        currentList = lists[0];
+        
+        saveToLocal();
+        updateListSelector();
+        updateNotesTextarea();
+        hideDeleteListConfirm();
+        renderTasks();
+        showStatus('✅ הרשימה נמחקה והמשימות הועברו לנמחקות');
+    }
+
+    function updateListSelector() {
+        const selector = document.getElementById('listSelector');
+        selector.innerHTML = lists.map(list => 
+            `<option value="${list}" ${list === currentList ? 'selected' : ''}>${list}</option>`
+        ).join('');
+    }
+
+    function loadTasks() {
+        currentList = document.getElementById('listSelector').value;
+        updateNotesTextarea();
+        renderTasks();
+        updateStats();
+    }
+
+    async function saveTask() {
+        const title = document.getElementById('taskTitle').value.trim();
+        if (!title) {
+            showStatus('❌ נא להזין תיאור משימה');
+            return;
+        }
+
+        if (editingTaskId) {
+            const task = tasks.find(t => t.id === editingTaskId);
+            if (task) {
+                task.title = title;
+                task.category = document.getElementById('taskCategory').value;
+                task.priority = document.getElementById('taskPriority').value;
+                task.notes = document.getElementById('taskNotes').value;
+                task.dueDate = document.getElementById('taskDueDate').value || null;
+                saveToLocal();
+                updateTaskOnServer(task);
+                showStatus('✅ המשימה עודכנה בהצלחה');
+            }
+        } else {
+            const task = {
+                id: Date.now(),
+                title: title,
+                category: document.getElementById('taskCategory').value,
+                priority: document.getElementById('taskPriority').value,
+                notes: document.getElementById('taskNotes').value,
+                dueDate: document.getElementById('taskDueDate').value || null,
+                completed: false,
+                listName: currentList,
+                createdAt: new Date().toISOString()
+            };
+            tasks.push(task);
+            saveToLocal();
+            pushTaskToServer(task);
+            showStatus('✅ המשימה נוספה בהצלחה');
+        }
+
+        cancelEdit();
+        renderTasks();
+        updateStats();
+    }
+
+    function editTask(id) {
+        const task = tasks.find(t => t.id === id);
+        if (!task) return;
+
+        editingTaskId = id;
+        document.getElementById('taskTitle').value = task.title;
+        document.getElementById('taskCategory').value = task.category;
+        document.getElementById('taskPriority').value = task.priority;
+        document.getElementById('taskNotes').value = task.notes || '';
+        document.getElementById('taskDueDate').value = task.dueDate || '';
+        
+        document.getElementById('formTitle').textContent = '✏️ עריכת משימה';
+        document.getElementById('saveBtn').textContent = '💾 שמור שינויים';
+        document.getElementById('cancelBtn').classList.remove('hidden');
+        
+        // Scroll to form at bottom
+        document.querySelector('.task-form').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+
+    function cancelEdit() {
+        editingTaskId = null;
+        document.getElementById('taskTitle').value = '';
+        document.getElementById('taskCategory').value = 'כללי';
+        document.getElementById('taskPriority').value = 'רגיל';
+        document.getElementById('taskNotes').value = '';
+        document.getElementById('taskDueDate').value = '';
+        
+        document.getElementById('formTitle').textContent = '➕ משימה חדשה';
+        document.getElementById('saveBtn').textContent = '➕ הוסף משימה';
+        document.getElementById('cancelBtn').classList.add('hidden');
+    }
+
+    function toggleTask(id, event) {
+        event.stopPropagation();
+        const task = tasks.find(t => t.id === id);
+        if (task) {
+            task.completed = !task.completed;
+            saveToLocal();
+            updateTaskOnServer(task);
+            renderTasks();
+            updateStats();
+        }
+    }
+
+    function deleteTask(id, event) {
+        event.stopPropagation();
+        const task = tasks.find(t => t.id === id);
+        if (task) {
+            task.deleted = true;
+            saveToLocal();
+            updateTaskOnServer(task);
+            renderTasks();
+            updateStats();
+            showStatus('🗑️ המשימה הועברה לנמחקות');
+        }
+    }
+
+    function permanentDeleteTask(id, event) {
+        event.stopPropagation();
+        if (confirm('האם אתה בטוח שברצונך למחוק משימה זו לצמיתות? לא ניתן לשחזר!')) {
+            tasks = tasks.filter(t => t.id !== id);
+            saveToLocal();
+            renderTasks();
+            updateStats();
+            showStatus('✅ המשימה נמחקה לצמיתות');
+        }
+    }
+
+    function restoreTask(id, event) {
+        event.stopPropagation();
+        const task = tasks.find(t => t.id === id);
+        if (task) {
+            task.deleted = false;
+            saveToLocal();
+            renderTasks();
+            updateStats();
+            showStatus('✅ המשימה שוחזרה');
+        }
+    }
+
+    function updateStats() {
+        const listTasks = tasks.filter(t => t.listName === currentList);
+        const filterCat = document.getElementById('filterCategory').value;
+        const filterStatus = document.getElementById('filterStatus').value;
+        
+        let filtered = filterCat === 'הכל' ? listTasks : listTasks.filter(t => t.category === filterCat);
+        
+        // Apply status filter for stats
+        if (filterStatus === 'active') {
+            filtered = filtered.filter(t => !t.completed && !t.deleted);
+        } else if (filterStatus === 'completed') {
+            filtered = filtered.filter(t => t.completed && !t.deleted);
+        } else if (filterStatus === 'deleted') {
+            filtered = filtered.filter(t => t.deleted);
+        } else if (filterStatus === 'all') {
+            // Show all
+        }
+        
+        const completed = filtered.filter(t => t.completed && !t.deleted).length;
+        const active = filtered.filter(t => !t.completed && !t.deleted).length;
+        const deleted = filtered.filter(t => t.deleted).length;
+        
+        document.getElementById('completedCount').textContent = completed;
+        document.getElementById('activeCount').textContent = active;
+        document.getElementById('totalCount').textContent = `${filtered.length} (🗑️ ${deleted})`;
+    }
+
+    function renderTasks() {
+        const filterCat = document.getElementById('filterCategory').value;
+        const filterStatus = document.getElementById('filterStatus').value;
+        const listTasks = tasks.filter(t => t.listName === currentList);
+        
+        let filteredTasks = filterCat === 'הכל' ? listTasks : listTasks.filter(t => t.category === filterCat);
+        
+        // Apply status filter
+        if (filterStatus === 'active') {
+            filteredTasks = filteredTasks.filter(t => !t.completed && !t.deleted);
+        } else if (filterStatus === 'completed') {
+            filteredTasks = filteredTasks.filter(t => t.completed && !t.deleted);
+        } else if (filterStatus === 'deleted') {
+            filteredTasks = filteredTasks.filter(t => t.deleted);
+        } else if (filterStatus === 'all') {
+            // Show all tasks
+        }
+        
+        // מיין לפי תאריך יעד — עם תאריך קודם, ללא תאריך אחרון
+        const activeTasks = filteredTasks.filter(t => !t.completed && !t.deleted).sort((a, b) => {
+            if (a.dueDate && b.dueDate) return new Date(a.dueDate) - new Date(b.dueDate);
+            if (a.dueDate) return -1;
+            if (b.dueDate) return 1;
+            return 0;
+        });
+        const completedTasks = filteredTasks.filter(t => t.completed && !t.deleted);
+        const deletedTasks = filteredTasks.filter(t => t.deleted);
+
+        let html = '';
+
+        // Active tasks
+        if (activeTasks.length > 0 && filterStatus !== 'completed' && filterStatus !== 'deleted') {
+            html += '<h2 style="color: white; margin-bottom: 15px;">⏳ משימות פעילות</h2>';
+            activeTasks.forEach(task => {
+                html += renderTask(task);
+            });
+        }
+
+        // Completed tasks
+        if (completedTasks.length > 0 && (filterStatus === 'completed' || filterStatus === 'all')) {
+            html += '<h2 style="color: white; margin: 30px 0 15px;">✅ משימות שהושלמו</h2>';
+            completedTasks.forEach(task => {
+                html += renderTask(task);
+            });
+        }
+
+        // Deleted tasks
+        if (deletedTasks.length > 0 && (filterStatus === 'deleted' || filterStatus === 'all')) {
+            html += '<h2 style="color: white; margin: 30px 0 15px;">🗑️ משימות שנמחקו</h2>';
+            deletedTasks.forEach(task => {
+                html += renderTask(task);
+            });
+        }
+
+        if (filteredTasks.length === 0) {
+            html = '<div class="task-item" style="text-align: center; border: none;"><p>אין משימות להצגה 🎯</p></div>';
+        }
+
+        document.getElementById('tasksList').innerHTML = html;
+        updateStats();
+    }
+
+    function renderTask(task) {
+        const isDeleted = task.deleted;
+        const isCompleted = task.completed && !task.deleted;
+        const reminder = getTaskReminder(task);
+        
+        let actions = '';
+        if (isDeleted) {
+            // Deleted task actions
+            actions = `
+                <button onclick="restoreTask(${task.id}, event)" class="btn btn-small btn-secondary">
+                    ↩️ שחזר
+                </button>
+                <button onclick="permanentDeleteTask(${task.id}, event)" class="btn btn-small btn-delete">
+                    ❌ מחיקה לצמיתות
+                </button>
+            `;
+        } else {
+            // Active/Completed task actions
+            actions = `
+                <button onclick="toggleTask(${task.id}, event)" class="btn btn-small btn-secondary">
+                    ${task.completed ? '↩️' : '✓'}
+                </button>
+                ${reminder ? `
+                    <button onclick="toggleReminderPanel(${reminder.id}, event)" class="btn btn-small" style="background:#fef3c7;color:#92400e;" title="תזכורת פעילה">🔔</button>
+                ` : `
+                    <button onclick="sendToWhatsApp(${task.id}, event)" class="btn btn-small btn-whatsapp" title="שלח תזכורת">📱</button>
+                `}
+                <button onclick="deleteTask(${task.id}, event)" class="btn btn-small btn-delete">🗑️</button>
+            `;
+        }
+        
+        return `
+            <div class="task-item ${isCompleted ? 'completed' : ''} ${isDeleted ? 'deleted' : ''} ${editingTaskId === task.id ? 'selected' : ''}" ${!isDeleted ? `onclick="editTask(${task.id})"` : ''}>
+                <div class="task-header">
+                    <div class="task-title ${isCompleted ? 'completed' : ''} ${isDeleted ? 'completed' : ''}">${task.title}</div>
+                    <div class="task-actions">
+                        ${actions}
+                    </div>
+                </div>
+                <div class="task-meta">
+                    <span class="badge badge-category">${task.category}</span>
+                    <span class="badge badge-priority-${task.priority}">${task.priority}</span>
+                    <span class="badge" style="background: #f3f4f6; color: #6b7280;">
+                        ${new Date(task.createdAt).toLocaleDateString('he-IL')}
+                    </span>
+                    ${isDeleted ? '<span class="badge" style="background: #fee2e2; color: #991b1b;">🗑️ נמחק</span>' : ''}
+                    ${task.dueDate ? `<span class="badge" style="background:${new Date(task.dueDate) < new Date() && !task.completed ? '#fee2e2;color:#991b1b' : '#ede9fe;color:#5b21b6'};">📅 ${new Date(task.dueDate).toLocaleString('he-IL', {day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'})}</span>` : ''}
+                </div>
+                ${task.notes ? `<div class="task-notes">${task.notes}</div>` : ''}
+                ${reminder ? `
+                <div id="reminderPanel_${reminder.id}" style="display:none;margin-top:8px;padding:10px;background:#fffbeb;border:1px solid #fde68a;border-radius:8px;">
+                    <div style="font-size:12px;color:#92400e;margin-bottom:8px;">
+                        🔔 תזכורת מתוזמנת: ${new Date(reminder.scheduled_time).toLocaleString('he-IL', {day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'})}
+                    </div>
+                    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+                        <input type="datetime-local" id="reminderEdit_${reminder.id}"
+                            value="${(() => { const d = new Date(reminder.scheduled_time); const offset = d.getTimezoneOffset() * 60000; return new Date(d - offset).toISOString().slice(0,16); })()}"
+                            style="flex:1;min-width:160px;padding:6px;border:1px solid #fde68a;border-radius:6px;font-size:12px;">
+                        <button onclick="updateReminderTime(${reminder.id})" class="btn btn-small" style="background:#10b981;color:white;">✏️ עדכן</button>
+                        <button onclick="cancelReminder(${reminder.id})" class="btn btn-small btn-delete">❌ בטל</button>
+                    </div>
+                </div>` : ''}
+            </div>
+        `;
+    }
+
+    function toggleReminderPanel(reminderId, event) {
+        event.stopPropagation();
+        const panel = document.getElementById(`reminderPanel_${reminderId}`);
+        if (panel) panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+    }
+
+    // ============================================
+    // Admin Panel
+    // ============================================
+    let adminAuthenticated = false;
+
+    function openAdminPanel() {
+        if (!adminAuthenticated) {
+            document.getElementById('adminPinModal').classList.add('active');
+            document.getElementById('adminPinInput').value = '';
+            setTimeout(() => document.getElementById('adminPinInput').focus(), 100);
+        } else {
+            document.getElementById('adminModal').classList.add('active');
+            loadAdminData();
+        }
+    }
+
+    async function verifyAdminPin() {
+        const pin = document.getElementById('adminPinInput').value.trim();
+        if (!pin) { showStatus('⚠️ נא להזין PIN'); return; }
+        try {
+            await apiCall('POST', '/api/admin/verify-pin', { pin });
+            adminAuthenticated = true;
+            document.getElementById('adminPinModal').classList.remove('active');
+            document.getElementById('adminModal').classList.add('active');
+            loadAdminData();
+        } catch(e) {
+            showStatus('❌ PIN שגוי');
+            document.getElementById('adminPinInput').value = '';
+        }
+    }
+
+    function closeAdminPin() {
+        document.getElementById('adminPinModal').classList.remove('active');
+    }
+
+    function closeAdminPanel() {
+        document.getElementById('adminModal').classList.remove('active');
+    }
+
+    async function loadAdminData() {
+        try {
+            const [users, codes, sessions, reminders] = await Promise.all([
+                apiCall('GET', '/api/admin/users'),
+                apiCall('GET', '/api/admin/codes'),
+                apiCall('GET', '/api/sessions/all'),
+                apiCall('GET', '/api/reminders/all')
+            ]);
+            renderAdminUsers(users);
+            renderAdminCodes(codes);
+            renderAdminSessions(sessions);
+            renderAdminReminders(reminders);
+        } catch(e) {
+            showStatus('❌ שגיאה בטעינת נתוני ניהול');
+        }
+    }
+
+    function renderAdminUsers(users) {
+        const el = document.getElementById('adminUsersList');
+        el.innerHTML = users.map(u => `
+            <div class="admin-row">
+                <div class="admin-row-info">
+                    <strong>${u.name}</strong>
+                    <span class="admin-badge ${u.role === 'admin' ? 'badge-admin' : 'badge-user'}">${u.role}</span>
+                    <span class="admin-badge ${u.is_active ? 'badge-active' : 'badge-inactive'}">${u.is_active ? 'פעיל' : 'חסום'}</span>
+                    <br>
+                    <small>📱 ${u.phone} | קוד: ${u.access_code}</small>
+                    <br>
+                    <small>כניסה אחרונה: ${u.last_login ? new Date(u.last_login).toLocaleString('he-IL') : 'מעולם'}</small>
+                </div>
+                <div class="admin-row-actions">
+                    ${u.role !== 'admin' ? `
+                        <button onclick="toggleUser(${u.id}, ${u.is_active})" class="btn btn-sm ${u.is_active ? 'btn-danger' : 'btn-success'}">
+                            ${u.is_active ? '🚫 חסום' : '✅ שחרר'}
+                        </button>
+                    ` : ''}
+                </div>
+            </div>
+        `).join('');
+    }
+
+    function renderAdminCodes(codes) {
+        const el = document.getElementById('adminCodesList');
+        el.innerHTML = codes.map(c => `
+            <div class="admin-row">
+                <div class="admin-row-info">
+                    <strong>${c.name}</strong>
+                    <span class="admin-badge ${c.is_active ? 'badge-active' : 'badge-inactive'}">${c.is_active ? 'פעיל' : 'בוטל'}</span>
+                    <br>
+                    <small>קוד: <code>${c.code}</code> | שימושים: ${c.usage_count}</small>
+                    <br>
+                    <small>נוצר: ${new Date(c.created_at).toLocaleDateString('he-IL')}</small>
+                </div>
+                <div class="admin-row-actions">
+                    ${c.is_active ? `<button onclick="revokeCode(${c.id})" class="btn btn-sm btn-danger">🗑️ בטל</button>` : ''}
+                </div>
+            </div>
+        `).join('');
+    }
+
+    function renderAdminSessions(sessions) {
+        const el = document.getElementById('adminSessionsList');
+        el.innerHTML = sessions.slice(0, 20).map(s => `
+            <div class="admin-row">
+                <div class="admin-row-info">
+                    <strong>משתמש #${s.user_id}</strong>
+                    <span class="admin-badge ${s.is_active ? 'badge-active' : 'badge-user'}">
+                        ${s.is_active ? '🟢 פעיל' : '⚪ יצא'}
+                    </span>
+                    <br>
+                    <small>📍 ${s.ip_address || 'לא ידוע'}</small>
+                    <br>
+                    <small>${new Date(s.logged_in_at).toLocaleString('he-IL')}</small>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    async function toggleUser(userId, isActive) {
+        try {
+            await apiCall('PUT', `/api/admin/users/${userId}`, { is_active: !isActive });
+            loadAdminData();
+            showStatus(isActive ? '🚫 המשתמש חסום' : '✅ המשתמש שוחרר');
+        } catch(e) {
+            showStatus('❌ שגיאה');
+        }
+    }
+
+    async function revokeCode(codeId) {
+        try {
+            await apiCall('DELETE', `/api/admin/codes/${codeId}`);
+            loadAdminData();
+            showStatus('🗑️ הקוד בוטל');
+        } catch(e) {
+            showStatus('❌ שגיאה');
+        }
+    }
+
+    function renderAdminReminders(reminders) {
+        const el = document.getElementById('adminRemindersList');
+        if (!el) return;
+        const statusLabel = {pending:'⏳ ממתין', sent:'✅ נשלח', failed:'❌ נכשל', cancelled:'🚫 בוטל'};
+        el.innerHTML = reminders.map(r => `
+            <div class="admin-row">
+                <div class="admin-row-info">
+                    <strong>${r.task_title}</strong>
+                    <span class="admin-badge ${r.status === 'pending' ? 'badge-active' : r.status === 'sent' ? 'badge-user' : 'badge-inactive'}">${statusLabel[r.status] || r.status}</span>
+                    <br>
+                    <small>👤 ${r.user_name} | 📅 ${new Date(r.scheduled_time).toLocaleString('he-IL', {day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'})}</small>
+                </div>
+                <div class="admin-row-actions">
+                    ${r.status === 'pending' ? `<button onclick="adminCancelReminder(${r.id})" class="btn btn-sm btn-danger">❌ בטל</button>` : ''}
+                </div>
+            </div>
+        `).join('') || '<p style="color:#9ca3af;font-size:13px;">אין תזכורות</p>';
+    }
+
+    async function adminCancelReminder(reminderId) {
+        try {
+            await apiCall('DELETE', `/api/reminders/admin/${reminderId}`);
+            loadAdminData();
+            showStatus('✅ התזכורת בוטלה');
+        } catch(e) {
+            showStatus('❌ שגיאה');
+        }
+    }
+
+    async function createNewCode() {
+        const name = document.getElementById('newCodeName').value.trim();
+        if (!name) { showStatus('⚠️ נא להזין שם'); return; }
+        try {
+            const result = await apiCall('POST', '/api/admin/codes', { name });
+            document.getElementById('newCodeName').value = '';
+            document.getElementById('newCodeResult').textContent = `קוד חדש: ${result.code}`;
+            document.getElementById('newCodeResult').style.display = 'block';
+            loadAdminData();
+        } catch(e) {
+            showStatus('❌ שגיאה ביצירת קוד');
+        }
+    }
+
+    // הצג כפתור ניהול אם admin
+    function updateUserDisplay(name) {
+        const el = document.getElementById('userNameDisplay');
+        if (el && name) el.textContent = name;
+    }
+
+    async function checkAdminRole() {
+        if (!apiToken) return;
+        try {
+            const me = await apiCall('GET', '/api/users/me');
+            updateUserDisplay(me.name);
+            if (me.role === 'admin') {
+                document.getElementById('adminBtn').style.display = 'flex';
+            }
+        } catch(e) {}
+    }
+</script>
+```
+
+<!-- Admin PIN Modal -->
+<div id="adminPinModal" class="modal">
+    <div class="modal-content" style="max-width:340px;">
+        <div class="modal-header">
+            <h2 style="color:#ef4444;margin:0;">🛡️ אימות מנהל</h2>
+            <button onclick="closeAdminPin()" class="close-btn">✕</button>
+        </div>
+        <div style="padding:20px;text-align:center;">
+            <p style="color:#6b7280;margin-bottom:16px;">הכנס את קוד ה-PIN שלך</p>
+            <input type="password" id="adminPinInput" placeholder="PIN" maxlength="10"
+                style="width:100%;padding:12px;border:2px solid #e5e7eb;border-radius:10px;font-size:20px;text-align:center;letter-spacing:8px;"
+                onkeydown="if(event.key==='Enter')verifyAdminPin()">
+            <button onclick="verifyAdminPin()" class="btn btn-primary" style="width:100%;margin-top:16px;">
+                כניסה 🔐
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Admin Panel Modal -->
+<div id="adminModal" class="modal">
+    <div class="modal-content" style="max-width:700px;max-height:90vh;overflow-y:auto;">
+        <div class="modal-header">
+            <h2 style="color:#ef4444;margin:0;">🛡️ פאנל ניהול</h2>
+            <button onclick="closeAdminPanel()" class="close-btn">✕</button>
+        </div>
+        <div style="padding:20px;">
+
+            <!-- Users -->
+            <div class="admin-section">
+                <h3 style="color:#374151;margin-bottom:12px;">👥 משתמשים</h3>
+                <div id="adminUsersList"></div>
+            </div>
+
+            <!-- Create Code -->
+            <div class="admin-section">
+                <h3 style="color:#374151;margin-bottom:12px;">🔑 נפק קוד גישה חדש</h3>
+                <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+                    <input type="text" id="newCodeName" placeholder="שם המשתמש"
+                        style="flex:1;min-width:150px;padding:10px;border:2px solid #e5e7eb;border-radius:10px;">
+                    <button onclick="createNewCode()" class="btn btn-primary">➕ צור קוד</button>
+                </div>
+                <div id="newCodeResult" style="display:none;margin-top:10px;padding:10px;background:#f0fdf4;border:1px solid #86efac;border-radius:8px;font-family:monospace;font-size:16px;color:#15803d;text-align:center;"></div>
+            </div>
+
+            <!-- Access Codes -->
+            <div class="admin-section">
+                <h3 style="color:#374151;margin-bottom:12px;">🗝️ קודי גישה</h3>
+                <div id="adminCodesList"></div>
+            </div>
+
+            <!-- Sessions -->
+            <div class="admin-section">
+                <h3 style="color:#374151;margin-bottom:12px;">📊 לוג חיבורים אחרונים</h3>
+                <div id="adminSessionsList"></div>
+            </div>
+
+            <!-- Reminders -->
+            <div class="admin-section">
+                <h3 style="color:#374151;margin-bottom:12px;">🔔 כל התזכורות</h3>
+                <div id="adminRemindersList"></div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+</body>
+</html>
