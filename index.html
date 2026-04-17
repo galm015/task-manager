@@ -613,7 +613,7 @@
                         ⚙️
                     </button>
                     <div class="version-info">
-                        <span class="version-number">v4.6.1</span>
+                        <span class="version-number">v4.6.3</span>
                     </div>
                 </div>
                 <button id="adminBtn" onclick="openAdminPanel()" class="btn btn-icon" title="ניהול" style="display:none;background:linear-gradient(135deg,#ef4444,#dc2626);color:white;">
@@ -822,13 +822,15 @@
 
 <script>
     // VERSION INFO
-    const APP_VERSION = '4.6.1';
+    const APP_VERSION = '4.6.3';
     const VERSION_DATE = '14.03.2026';
 
     // ============================================
     // API Configuration
     // ============================================
-    const API_URL = 'https://api.galmichal.com';
+    const API_URL = (window.location.hostname === '127.0.0.1' || window.location.hostname === 'localhost')
+        ? 'http://localhost'
+        : 'https://api.galmichal.com';
     let apiToken = localStorage.getItem('taskManagerApiToken') || null;
     let apiUserId = localStorage.getItem('taskManagerApiUserId') || null;
 
@@ -1616,7 +1618,13 @@
         }
         
         // מיין לפי תאריך יעד — עם תאריך קודם, ללא תאריך אחרון
+        const priorityOrder = { 'גבוה': 0, 'רגיל': 1, 'נמוך': 2 };
         const activeTasks = filteredTasks.filter(t => !t.completed && !t.deleted).sort((a, b) => {
+            // קודם מיין לפי עדיפות
+            const pA = priorityOrder[a.priority] ?? 1;
+            const pB = priorityOrder[b.priority] ?? 1;
+            if (pA !== pB) return pA - pB;
+            // אחר כך לפי תאריך יעד
             if (a.dueDate && b.dueDate) return new Date(a.dueDate) - new Date(b.dueDate);
             if (a.dueDate) return -1;
             if (b.dueDate) return 1;
