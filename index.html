@@ -734,6 +734,9 @@
     <div class="container">
         <div class="header">
             <div class="header-actions">
+                <button onclick="toggleSearch()" class="btn btn-settings btn-icon" id="searchBtn" title="חיפוש">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                </button>
                 <button onclick="scrollToAddTask()" class="btn btn-add-task btn-icon" title="הוסף משימה">
                     <i class="fa-solid fa-plus"></i>
                 </button>
@@ -749,19 +752,30 @@
                         <i class="fa-solid fa-gear"></i>
                     </button>
                     <div class="version-info">
-                        <span class="version-number">v4.6.3</span>
+                        <span class="version-number">v4.6.4</span>
                     </div>
                 </div>
                 <button id="adminBtn" onclick="openAdminPanel()" class="btn btn-icon" title="ניהול" style="display:none;background:linear-gradient(135deg,#ef4444,#dc2626);color:white;">
                     <i class="fa-solid fa-lock"></i>
                 </button>
             </div>
+            <div id="todayDate" style="position:absolute; bottom:14px; left:20px; font-size:12px; color:rgba(255,255,255,0.45);"></div>
             <div class="header-content">
                 <h1>📚 מנהל משימות אישי <span id="userNameDisplay" style="font-size:18px;font-weight:600;background:linear-gradient(135deg,#a5b4fc,#c4b5fd);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;"></span></h1>
                 <p style="color: rgba(255,255,255,0.6); margin-top: 10px;">ניהול משימות חכם עם מיזוג אוטומטי</p>
                 <div id="lastSyncDate" class="sync-date hidden"></div>
             </div>
         </div>
+
+    <!-- Search Bar -->
+    <div id="searchBar" style="display:none; margin-bottom:16px;">
+        <div style="position:relative;">
+            <i class="fa-solid fa-magnifying-glass" style="position:absolute; right:14px; top:50%; transform:translateY(-50%); color:rgba(255,255,255,0.4); pointer-events:none;"></i>
+            <input type="text" id="searchInput" placeholder="חיפוש בין המשימות..." oninput="renderTasks()"
+                style="margin-bottom:0; padding-right:42px; background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.25); border-radius:14px; font-size:15px;"
+                autofocus>
+        </div>
+    </div>
 
     <div id="statusMessage"></div>
 
@@ -954,8 +968,8 @@
 
 <script>
     // VERSION INFO
-    const APP_VERSION = '4.6.3';
-    const VERSION_DATE = '14.03.2026';
+    const APP_VERSION = '4.6.4';
+    const VERSION_DATE = '19.04.2026';
 
     // ============================================
     // API Configuration
@@ -1137,6 +1151,7 @@
         localStorage.removeItem('mathWebsiteNotes');
         localStorage.removeItem('mathWebsiteLastSync');
 
+        renderTodayDate();
         loadFromLocal();
         updateListSelector();
         updateNotesTextarea();
@@ -1193,6 +1208,30 @@
         setTimeout(() => {
             statusDiv.innerHTML = '';
         }, 3000);
+    }
+
+    function renderTodayDate() {
+        const days = ['יום א', 'יום ב', 'יום ג', 'יום ד', 'יום ה', 'יום ו', 'יום ש'];
+        const now = new Date();
+        const dayName = days[now.getDay()];
+        const d = now.getDate();
+        const m = now.getMonth() + 1;
+        const y = now.getFullYear();
+        document.getElementById('todayDate').textContent = `${dayName} ${d}/${m}/${y}`;
+    }
+
+    function toggleSearch() {
+        const bar = document.getElementById('searchBar');
+        const isVisible = bar.style.display !== 'none';
+        bar.style.display = isVisible ? 'none' : 'block';
+        if (!isVisible) {
+            document.getElementById('searchInput').value = '';
+            document.getElementById('searchInput').focus();
+            renderTasks();
+        } else {
+            document.getElementById('searchInput').value = '';
+            renderTasks();
+        }
     }
 
     function scrollToAddTask() {
@@ -1716,9 +1755,17 @@
     function renderTasks() {
         const filterCat = document.getElementById('filterCategory').value;
         const filterStatus = document.getElementById('filterStatus').value;
+        const searchQuery = (document.getElementById('searchInput')?.value || '').trim().toLowerCase();
         const listTasks = tasks.filter(t => t.listName === currentList);
 
         let filteredTasks = filterCat === 'הכל' ? listTasks : listTasks.filter(t => t.category === filterCat);
+
+        if (searchQuery) {
+            filteredTasks = filteredTasks.filter(t =>
+                t.title.toLowerCase().includes(searchQuery) ||
+                (t.notes || '').toLowerCase().includes(searchQuery)
+            );
+        }
 
         // Apply status filter
         if (filterStatus === 'active') {
