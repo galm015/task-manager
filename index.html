@@ -1,17 +1,19 @@
 <!DOCTYPE html>
-
 <html lang="he" dir="rtl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="description" content="מנהל משימות אישי">
-    <meta name="theme-color" content="#667eea">
+    <meta name="theme-color" content="#302b63">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="משימות">
     <title>מנהל משימות אישי</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 
-```
 <style>
     * {
         margin: 0;
@@ -22,22 +24,63 @@
 
     body {
         font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
         min-height: 100vh;
         padding: 20px;
+        color: #ffffff;
+        position: relative;
+        overflow-x: hidden;
+    }
+
+    body::before {
+        content: '';
+        position: fixed;
+        width: 600px;
+        height: 600px;
+        background: radial-gradient(circle, rgba(102,126,234,0.22) 0%, transparent 70%);
+        top: -150px;
+        right: -150px;
+        z-index: 0;
+        pointer-events: none;
+    }
+
+    body::after {
+        content: '';
+        position: fixed;
+        width: 500px;
+        height: 500px;
+        background: radial-gradient(circle, rgba(118,75,162,0.18) 0%, transparent 70%);
+        bottom: -100px;
+        left: -100px;
+        z-index: 0;
+        pointer-events: none;
     }
 
     .container {
         max-width: 800px;
         margin: 0 auto;
+        position: relative;
+        z-index: 1;
     }
 
+    /* ===== GLASS CARDS ===== */
+    .header,
+    .list-selector,
+    .filter-section,
+    .task-form,
+    .notes-section {
+        background: rgba(255, 255, 255, 0.08);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        border-radius: 20px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    }
+
+    /* ===== HEADER ===== */
     .header {
-        background: white;
-        border-radius: 15px;
         padding: 25px;
         margin-bottom: 20px;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.2);
         position: relative;
     }
 
@@ -51,13 +94,13 @@
     .version-number {
         font-size: 9px;
         font-weight: 600;
-        color: #9ca3af;
+        color: rgba(255, 255, 255, 0.35);
         line-height: 1.2;
     }
 
     .version-date {
         font-size: 8px;
-        color: #d1d5db;
+        color: rgba(255, 255, 255, 0.25);
     }
 
     .header-content {
@@ -72,6 +115,57 @@
         gap: 8px;
     }
 
+    h1 {
+        color: #ffffff;
+        font-size: 28px;
+        margin-bottom: 10px;
+        text-shadow: 0 2px 12px rgba(102, 126, 234, 0.5);
+    }
+
+    h2 {
+        color: #ffffff;
+    }
+
+    .sync-date {
+        background: rgba(52, 211, 153, 0.15);
+        border: 1px solid rgba(52, 211, 153, 0.35);
+        color: #6ee7b7;
+        padding: 8px 12px;
+        border-radius: 8px;
+        font-size: 13px;
+        margin-top: 10px;
+        display: inline-block;
+    }
+
+    /* ===== BUTTONS ===== */
+    .btn {
+        background: linear-gradient(135deg, rgba(102,126,234,0.75), rgba(118,75,162,0.75));
+        color: white;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        padding: 12px 24px;
+        border-radius: 10px;
+        font-size: 16px;
+        font-weight: bold;
+        cursor: pointer;
+        transition: all 0.25s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+    }
+
+    .btn:hover {
+        background: linear-gradient(135deg, rgba(102,126,234,1), rgba(118,75,162,1));
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(102, 126, 234, 0.45);
+        border-color: rgba(255, 255, 255, 0.35);
+    }
+
+    .btn:active {
+        transform: translateY(0);
+    }
+
     .btn-icon {
         min-width: 44px;
         height: 44px;
@@ -83,29 +177,68 @@
     }
 
     .btn-add-task {
-        background: #8b5cf6;
+        background: linear-gradient(135deg, rgba(139,92,246,0.8), rgba(109,40,217,0.8));
     }
-
     .btn-add-task:hover {
-        background: #7c3aed;
+        background: linear-gradient(135deg, rgba(139,92,246,1), rgba(109,40,217,1));
+        box-shadow: 0 8px 25px rgba(139,92,246,0.45);
     }
 
     .btn-settings {
-        background: #6b7280;
+        background: rgba(107, 114, 128, 0.55);
+        border-color: rgba(255, 255, 255, 0.15);
+    }
+    .btn-settings:hover {
+        background: rgba(75, 85, 99, 0.8);
+        box-shadow: none;
     }
 
-    .btn-settings:hover {
-        background: #4b5563;
+    .btn-secondary {
+        background: linear-gradient(135deg, rgba(16,185,129,0.75), rgba(5,150,105,0.75));
+    }
+    .btn-secondary:hover {
+        background: linear-gradient(135deg, rgba(16,185,129,1), rgba(5,150,105,1));
+        box-shadow: 0 8px 25px rgba(16,185,129,0.4);
+    }
+
+    .btn-delete {
+        background: linear-gradient(135deg, rgba(239,68,68,0.75), rgba(220,38,38,0.75));
+    }
+    .btn-delete:hover {
+        background: linear-gradient(135deg, rgba(239,68,68,1), rgba(220,38,38,1));
+        box-shadow: 0 8px 25px rgba(239,68,68,0.4);
+    }
+
+    .btn-orange {
+        background: linear-gradient(135deg, rgba(245,158,11,0.75), rgba(217,119,6,0.75));
+    }
+    .btn-orange:hover {
+        background: linear-gradient(135deg, rgba(245,158,11,1), rgba(217,119,6,1));
+        box-shadow: 0 8px 25px rgba(245,158,11,0.4);
     }
 
     .btn-whatsapp {
-        background: #25d366;
+        background: linear-gradient(135deg, rgba(37,211,102,0.75), rgba(18,186,88,0.75));
     }
-
     .btn-whatsapp:hover {
-        background: #20ba5a;
+        background: linear-gradient(135deg, rgba(37,211,102,1), rgba(18,186,88,1));
+        box-shadow: 0 8px 25px rgba(37,211,102,0.4);
     }
 
+    .btn-primary {
+        background: linear-gradient(135deg, rgba(102,126,234,0.8), rgba(118,75,162,0.8));
+    }
+    .btn-primary:hover {
+        background: linear-gradient(135deg, rgba(102,126,234,1), rgba(118,75,162,1));
+        box-shadow: 0 8px 25px rgba(102,126,234,0.45);
+    }
+
+    .btn-small {
+        padding: 8px 14px;
+        font-size: 13px;
+    }
+
+    /* ===== MODALS ===== */
     .modal {
         display: none;
         position: fixed;
@@ -113,7 +246,9 @@
         left: 0;
         width: 100%;
         height: 100%;
-        background: rgba(0, 0, 0, 0.5);
+        background: rgba(0, 0, 0, 0.6);
+        backdrop-filter: blur(5px);
+        -webkit-backdrop-filter: blur(5px);
         z-index: 1000;
         justify-content: center;
         align-items: center;
@@ -124,13 +259,41 @@
     }
 
     .modal-content {
-        background: white;
-        border-radius: 15px;
+        background: #ffffff;
+        border-radius: 20px;
         padding: 30px;
         max-width: 500px;
         width: 90%;
-        max-height: 80vh;
+        max-height: 85vh;
         overflow-y: auto;
+        box-shadow: 0 25px 60px rgba(0, 0, 0, 0.5);
+        border: 1px solid rgba(255, 255, 255, 0.25);
+    }
+
+    .modal-content input,
+    .modal-content select,
+    .modal-content textarea {
+        background: #ffffff;
+        color: #374151;
+        border: 2px solid #e5e7eb;
+    }
+
+    .modal-content input::placeholder,
+    .modal-content textarea::placeholder {
+        color: #9ca3af;
+    }
+
+    .modal-content input:focus,
+    .modal-content select:focus,
+    .modal-content textarea:focus {
+        border-color: #667eea;
+        background: #ffffff;
+        outline: none;
+    }
+
+    .modal-content select option {
+        background: #ffffff;
+        color: #374151;
     }
 
     .modal-header {
@@ -140,7 +303,8 @@
         margin-bottom: 20px;
     }
 
-    .modal-close {
+    .modal-close,
+    .close-btn {
         background: #ef4444;
         color: white;
         border: none;
@@ -148,16 +312,20 @@
         height: 32px;
         border-radius: 50%;
         cursor: pointer;
-        font-size: 18px;
+        font-size: 16px;
         display: flex;
         align-items: center;
         justify-content: center;
+        transition: background 0.2s;
+        flex-shrink: 0;
     }
 
-    .modal-close:hover {
+    .modal-close:hover,
+    .close-btn:hover {
         background: #dc2626;
     }
 
+    /* ===== SETTINGS ===== */
     .settings-group {
         margin-bottom: 20px;
     }
@@ -173,8 +341,11 @@
         width: 100%;
         padding: 12px;
         border: 2px solid #e5e7eb;
-        border-radius: 8px;
+        border-radius: 10px;
         font-size: 16px;
+        color: #374151;
+        background: #ffffff;
+        transition: border-color 0.2s;
     }
 
     .settings-input:focus {
@@ -188,93 +359,39 @@
         margin-top: 5px;
     }
 
-    h1 {
-        color: #667eea;
-        font-size: 28px;
-        margin-bottom: 10px;
-    }
-
-    .sync-date {
-        background: #f0fdf4;
-        border: 1px solid #86efac;
-        color: #166534;
-        padding: 8px 12px;
-        border-radius: 8px;
-        font-size: 13px;
-        margin-top: 10px;
-        display: inline-block;
-    }
-
-    .btn {
-        background: #667eea;
-        color: white;
-        border: none;
-        padding: 12px 24px;
-        border-radius: 8px;
+    /* ===== INPUTS (main page) ===== */
+    select, input, textarea {
+        width: 100%;
+        padding: 12px;
+        background: rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 10px;
         font-size: 16px;
-        font-weight: bold;
-        cursor: pointer;
-        transition: all 0.3s;
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
+        margin-bottom: 10px;
+        color: #ffffff;
+        transition: border-color 0.25s, background 0.25s;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
     }
 
-    .btn:hover {
-        background: #5568d3;
-        transform: translateY(-2px);
-        box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+    select option {
+        background: #302b63;
+        color: #ffffff;
     }
 
-    .btn:active {
-        transform: translateY(0);
+    select:focus, input:focus, textarea:focus {
+        outline: none;
+        border-color: rgba(167, 139, 250, 0.8);
+        background: rgba(255, 255, 255, 0.15);
     }
 
-    .btn-secondary {
-        background: #10b981;
+    input::placeholder, textarea::placeholder {
+        color: rgba(255, 255, 255, 0.4);
     }
 
-    .btn-secondary:hover {
-        background: #059669;
-    }
-
-    .btn-delete {
-        background: #ef4444;
-    }
-
-    .btn-delete:hover {
-        background: #dc2626;
-    }
-
-    .btn-orange {
-        background: #f59e0b;
-    }
-
-    .btn-orange:hover {
-        background: #d97706;
-    }
-
-    .btn-small {
-        padding: 8px 16px;
-        font-size: 14px;
-    }
-
-    .sync-section {
-        display: none;
-    }
-
-    .sync-buttons {
-        display: flex;
-        gap: 10px;
-        flex-wrap: wrap;
-    }
-
+    /* ===== LIST SELECTOR ===== */
     .list-selector {
-        background: white;
-        border-radius: 15px;
         padding: 20px;
         margin-bottom: 20px;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.2);
     }
 
     .list-control {
@@ -283,35 +400,10 @@
         margin-bottom: 15px;
     }
 
-    select, input, textarea {
-        width: 100%;
-        padding: 12px;
-        border: 2px solid #e5e7eb;
-        border-radius: 8px;
-        font-size: 16px;
-        margin-bottom: 10px;
-        transition: border-color 0.3s;
-    }
-
-    select:focus, input:focus, textarea:focus {
-        outline: none;
-        border-color: #667eea;
-    }
-
-    .task-form {
-        background: white;
-        border-radius: 15px;
-        padding: 25px;
-        margin-bottom: 20px;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-    }
-
+    /* ===== FILTER SECTION ===== */
     .filter-section {
-        background: white;
-        border-radius: 15px;
         padding: 15px;
         margin-bottom: 20px;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.2);
     }
 
     .filter-row {
@@ -324,35 +416,65 @@
         margin-bottom: 0;
     }
 
-    .task-item {
-        background: white;
-        border-radius: 12px;
+    /* ===== TASK FORM ===== */
+    .task-form {
+        padding: 25px;
+        margin-bottom: 20px;
+    }
+
+    /* ===== NOTES SECTION ===== */
+    .notes-section {
         padding: 20px;
-        margin-bottom: 15px;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-        border-right: 5px solid #667eea;
-        transition: all 0.3s;
+        margin-bottom: 20px;
+    }
+
+    /* ===== SYNC SECTION ===== */
+    .sync-section {
+        display: none;
+    }
+
+    .sync-buttons {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+
+    /* ===== TASK ITEMS ===== */
+    .task-item {
+        background: rgba(255, 255, 255, 0.08);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        border-radius: 16px;
+        padding: 20px;
+        margin-bottom: 12px;
+        border-right: 4px solid rgba(167, 139, 250, 0.7);
+        transition: all 0.25s ease;
         cursor: pointer;
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
     }
 
     .task-item:hover {
-        transform: translateX(-5px);
-        box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+        background: rgba(255, 255, 255, 0.13);
+        transform: translateX(-4px);
+        box-shadow: 0 8px 28px rgba(0, 0, 0, 0.3);
+        border-right-color: rgba(167, 139, 250, 1);
     }
 
     .task-item.completed {
-        opacity: 0.6;
-        border-right-color: #10b981;
+        opacity: 0.55;
+        border-right-color: rgba(52, 211, 153, 0.7);
     }
 
     .task-item.deleted {
-        opacity: 0.5;
-        border-right-color: #ef4444;
-        background: #fef2f2;
+        opacity: 0.4;
+        border-right-color: rgba(248, 113, 113, 0.7);
+        background: rgba(239, 68, 68, 0.06);
     }
 
     .task-item.selected {
-        border: 3px solid #667eea;
+        border: 2px solid rgba(167, 139, 250, 0.8);
+        box-shadow: 0 0 0 3px rgba(167, 139, 250, 0.15), 0 8px 28px rgba(0,0,0,0.3);
     }
 
     .task-header {
@@ -363,106 +485,116 @@
     }
 
     .task-title {
-        font-size: 18px;
-        font-weight: bold;
+        font-size: 17px;
+        font-weight: 600;
         flex: 1;
         padding-left: 10px;
+        color: #ffffff;
     }
 
     .task-title.completed {
         text-decoration: line-through;
-        color: #6b7280;
+        color: rgba(255, 255, 255, 0.4);
     }
 
     .task-meta {
         display: flex;
-        gap: 10px;
+        gap: 8px;
         flex-wrap: wrap;
         margin-top: 10px;
     }
 
+    /* ===== BADGES ===== */
     .badge {
-        padding: 5px 12px;
+        padding: 4px 12px;
         border-radius: 20px;
-        font-size: 13px;
-        font-weight: bold;
+        font-size: 12px;
+        font-weight: 600;
     }
 
     .badge-category {
-        background: #dbeafe;
-        color: #1e40af;
+        background: rgba(96, 165, 250, 0.2);
+        color: #93c5fd;
+        border: 1px solid rgba(96, 165, 250, 0.3);
     }
 
     .badge-priority-גבוה {
-        background: #fee2e2;
-        color: #991b1b;
+        background: rgba(248, 113, 113, 0.2);
+        color: #fca5a5;
+        border: 1px solid rgba(248, 113, 113, 0.3);
     }
 
     .badge-priority-רגיל {
-        background: #dbeafe;
-        color: #1e40af;
+        background: rgba(96, 165, 250, 0.15);
+        color: #93c5fd;
+        border: 1px solid rgba(96, 165, 250, 0.25);
     }
 
     .badge-priority-נמוך {
-        background: #f3f4f6;
-        color: #374151;
+        background: rgba(255, 255, 255, 0.1);
+        color: rgba(255, 255, 255, 0.55);
+        border: 1px solid rgba(255, 255, 255, 0.15);
     }
 
+    /* ===== TASK NOTES ===== */
     .task-notes {
-        background: #fef3c7;
-        padding: 12px;
+        background: rgba(251, 191, 36, 0.1);
+        border: 1px solid rgba(251, 191, 36, 0.2);
+        padding: 10px 12px;
         border-radius: 8px;
         margin-top: 10px;
         font-size: 14px;
         white-space: pre-wrap;
+        color: rgba(255, 255, 255, 0.85);
     }
 
+    /* ===== TASK ACTIONS ===== */
     .task-actions {
         display: flex;
-        gap: 10px;
+        gap: 8px;
     }
 
+    /* ===== UTILITIES ===== */
     .hidden {
         display: none;
     }
 
+    /* ===== STATUS MESSAGE ===== */
     .status-message {
-        background: #dbeafe;
-        color: #1e40af;
+        background: rgba(102, 126, 234, 0.22);
+        border: 1px solid rgba(102, 126, 234, 0.4);
+        color: #c4b5fd;
         padding: 12px;
-        border-radius: 8px;
+        border-radius: 10px;
         margin-bottom: 15px;
         text-align: center;
-        font-weight: bold;
+        font-weight: 600;
+        backdrop-filter: blur(10px);
     }
 
+    /* ===== STATS ===== */
     .stats {
         display: flex;
-        gap: 15px;
+        gap: 10px;
         margin-bottom: 15px;
         flex-wrap: wrap;
     }
 
     .stat-item {
-        background: #f3f4f6;
+        background: rgba(255, 255, 255, 0.08);
+        border: 1px solid rgba(255, 255, 255, 0.15);
         padding: 8px 15px;
-        border-radius: 8px;
+        border-radius: 10px;
         font-size: 14px;
+        color: rgba(255, 255, 255, 0.85);
     }
 
-    .notes-section {
-        background: white;
-        border-radius: 15px;
-        padding: 20px;
-        margin-bottom: 20px;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-    }
-
+    /* ===== RESPONSIVE ===== */
     @media (max-width: 600px) {
         body {
             padding: 10px;
         }
-        
+
         h1 {
             font-size: 22px;
         }
@@ -509,8 +641,8 @@
         }
 
         .btn-small {
-            padding: 10px 14px;
-            font-size: 13px;
+            padding: 10px 12px;
+            font-size: 12px;
         }
 
         .task-item {
@@ -518,20 +650,20 @@
         }
 
         .task-title {
-            font-size: 16px;
+            font-size: 15px;
         }
 
         .task-meta {
-            gap: 8px;
+            gap: 6px;
         }
 
         .badge {
             font-size: 11px;
-            padding: 4px 10px;
+            padding: 3px 9px;
         }
 
         .stats {
-            gap: 8px;
+            gap: 6px;
         }
 
         .stat-item {
@@ -545,7 +677,7 @@
 
         .task-actions {
             flex-direction: row;
-            gap: 8px;
+            gap: 6px;
         }
 
         .task-actions .btn-small {
@@ -553,7 +685,7 @@
         }
     }
 
-    /* Admin Panel */
+    /* ===== ADMIN PANEL ===== */
     .admin-section {
         background: #f9fafb;
         border-radius: 12px;
@@ -561,6 +693,7 @@
         margin-bottom: 16px;
         border: 1px solid #e5e7eb;
     }
+
     .admin-row {
         display: flex;
         justify-content: space-between;
@@ -572,8 +705,10 @@
         border: 1px solid #e5e7eb;
         gap: 10px;
     }
-    .admin-row-info { flex: 1; font-size: 13px; line-height: 1.8; }
+
+    .admin-row-info { flex: 1; font-size: 13px; line-height: 1.8; color: #374151; }
     .admin-row-actions { flex-shrink: 0; }
+
     .admin-badge {
         display: inline-block;
         padding: 2px 8px;
@@ -582,16 +717,17 @@
         font-weight: 600;
         margin-right: 4px;
     }
+
     .badge-admin   { background: #fef3c7; color: #92400e; }
     .badge-user    { background: #ede9fe; color: #5b21b6; }
     .badge-active  { background: #d1fae5; color: #065f46; }
     .badge-inactive{ background: #fee2e2; color: #991b1b; }
+
     .btn-sm { padding: 6px 12px; font-size: 12px; }
     .btn-danger  { background: #ef4444; color: white; border: none; border-radius: 8px; cursor: pointer; }
     .btn-success { background: #10b981; color: white; border: none; border-radius: 8px; cursor: pointer; }
     code { background: #f3f4f6; padding: 2px 6px; border-radius: 4px; font-family: monospace; }
 </style>
-```
 
 </head>
 <body>
@@ -599,35 +735,34 @@
         <div class="header">
             <div class="header-actions">
                 <button onclick="scrollToAddTask()" class="btn btn-add-task btn-icon" title="הוסף משימה">
-                    ➕
+                    <i class="fa-solid fa-plus"></i>
                 </button>
                 <button onclick="exportData()" class="btn btn-secondary btn-icon" title="ייצא לקובץ">
-                    📥
+                    <i class="fa-solid fa-download"></i>
                 </button>
                 <label class="btn btn-orange btn-icon" style="margin: 0; cursor: pointer;" title="ייבא מקובץ">
-                    📤
+                    <i class="fa-solid fa-upload"></i>
                     <input type="file" accept=".json" onchange="importData(event)" style="display: none;">
                 </label>
                 <div style="display:flex;flex-direction:column;align-items:center;">
                     <button onclick="openSettings()" class="btn btn-settings btn-icon" title="הגדרות">
-                        ⚙️
+                        <i class="fa-solid fa-gear"></i>
                     </button>
                     <div class="version-info">
                         <span class="version-number">v4.6.3</span>
                     </div>
                 </div>
                 <button id="adminBtn" onclick="openAdminPanel()" class="btn btn-icon" title="ניהול" style="display:none;background:linear-gradient(135deg,#ef4444,#dc2626);color:white;">
-                    🛡️
+                    <i class="fa-solid fa-lock"></i>
                 </button>
             </div>
             <div class="header-content">
-                <h1>📚 מנהל משימות אישי <span id="userNameDisplay" style="font-size:18px;font-weight:600;background:linear-gradient(135deg,#667eea,#764ba2);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;"></span></h1>
-                <p style="color: #6b7280; margin-top: 10px;">ניהול משימות חכם עם מיזוג אוטומטי</p>
+                <h1>📚 מנהל משימות אישי <span id="userNameDisplay" style="font-size:18px;font-weight:600;background:linear-gradient(135deg,#a5b4fc,#c4b5fd);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;"></span></h1>
+                <p style="color: rgba(255,255,255,0.6); margin-top: 10px;">ניהול משימות חכם עם מיזוג אוטומטי</p>
                 <div id="lastSyncDate" class="sync-date hidden"></div>
             </div>
         </div>
 
-```
     <div id="statusMessage"></div>
 
     <!-- Settings Modal -->
@@ -637,13 +772,13 @@
                 <h2 style="color: #667eea; margin: 0;">⚙️ הגדרות</h2>
                 <button onclick="closeSettings()" class="modal-close">✕</button>
             </div>
-            
+
             <div class="settings-group">
                 <label class="settings-label">🔑 קוד גישה</label>
-                <input 
-                    type="text" 
-                    id="accessCode" 
-                    class="settings-input" 
+                <input
+                    type="text"
+                    id="accessCode"
+                    class="settings-input"
                     placeholder="הכנס קוד גישה שקיבלת"
                     dir="ltr"
                     maxlength="20"
@@ -653,10 +788,10 @@
 
             <div class="settings-group">
                 <label class="settings-label">📱 מספר טלפון לתזכורות WhatsApp</label>
-                <input 
-                    type="tel" 
-                    id="phoneNumber" 
-                    class="settings-input" 
+                <input
+                    type="tel"
+                    id="phoneNumber"
+                    class="settings-input"
                     placeholder="972501234567"
                     dir="ltr"
                 >
@@ -666,20 +801,17 @@
             <button onclick="saveSettings()" class="btn" style="width: 100%;">
                 💾 שמור הגדרות
             </button>
-            <button onclick="logout()" class="btn" style="width: 100%; margin-top: 10px; background: #fee2e2; color: #991b1b;">
+            <button onclick="logout()" class="btn" style="width: 100%; margin-top: 10px; background: #fee2e2; color: #991b1b; border: none; backdrop-filter: none;">
                 🚪 התנתק
             </button>
         </div>
     </div>
 
-    <!-- Tasks List (Active) -->
-    <div id="tasksList"></div>
-
     <!-- Reminder Modal -->
     <div id="reminderModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
-                <h2 style="color: #25d366; margin: 0;">📱 תזכורת WhatsApp</h2>
+                <h2 style="color: #059669; margin: 0;">📱 תזכורת WhatsApp</h2>
                 <button onclick="closeReminderModal()" class="modal-close">✕</button>
             </div>
             <input type="hidden" id="reminderTaskId">
@@ -713,14 +845,14 @@
                 <input type="file" accept=".json" onchange="importData(event)" style="display: none;">
             </label>
         </div>
-        <p style="color: #6b7280; font-size: 14px; margin-top: 10px;">
+        <p style="color: rgba(255,255,255,0.6); font-size: 14px; margin-top: 10px;">
             💡 הייבוא מזהה שינויים חדשים ומשלב אותם אוטומטית ללא מחיקת נתונים
         </p>
     </div>
 
     <!-- List Selector -->
     <div class="list-selector">
-        <label style="font-weight: bold; display: block; margin-bottom: 10px;">📋 בחר רשימה:</label>
+        <label style="font-weight: bold; display: block; margin-bottom: 10px; color: rgba(255,255,255,0.9);">📋 בחר רשימה:</label>
         <div class="list-control">
             <select id="listSelector" onchange="loadTasks()" style="flex: 1;">
                 <option value="כללי">כללי</option>
@@ -734,16 +866,16 @@
             <input type="text" id="newListName" placeholder="שם הרשימה החדשה...">
             <div style="display: flex; gap: 10px;">
                 <button onclick="createNewList()" class="btn btn-secondary" style="flex: 1;">יצירה</button>
-                <button onclick="hideNewListForm()" class="btn" style="flex: 1; background: #6b7280;">ביטול</button>
+                <button onclick="hideNewListForm()" class="btn" style="flex: 1; background: rgba(107,114,128,0.6);">ביטול</button>
             </div>
         </div>
-        <div id="deleteListConfirm" class="hidden" style="margin-top: 15px; padding: 15px; background: #fee2e2; border-radius: 8px;">
-            <p style="color: #991b1b; font-weight: bold; margin-bottom: 10px;">
+        <div id="deleteListConfirm" class="hidden" style="margin-top: 15px; padding: 15px; background: rgba(239,68,68,0.12); border: 1px solid rgba(239,68,68,0.3); border-radius: 12px;">
+            <p style="color: #fca5a5; font-weight: bold; margin-bottom: 10px;">
                 ⚠️ האם אתה בטוח שברצונך למחוק את הרשימה?
             </p>
             <div style="display: flex; gap: 10px;">
                 <button onclick="deleteList()" class="btn btn-delete" style="flex: 1;">כן, מחק</button>
-                <button onclick="hideDeleteListConfirm()" class="btn" style="flex: 1; background: #6b7280;">ביטול</button>
+                <button onclick="hideDeleteListConfirm()" class="btn" style="flex: 1; background: rgba(107,114,128,0.6);">ביטול</button>
             </div>
         </div>
         <div class="stats" style="margin-top: 15px;">
@@ -755,7 +887,7 @@
 
     <!-- Filter Section -->
     <div class="filter-section">
-        <label style="font-weight: bold; display: block; margin-bottom: 10px;">🔍 סינון:</label>
+        <label style="font-weight: bold; display: block; margin-bottom: 10px; color: rgba(255,255,255,0.9);">🔍 סינון:</label>
         <div class="filter-row">
             <select id="filterCategory" onchange="renderTasks()" style="flex: 1;">
                 <option value="הכל">כל הקטגוריות</option>
@@ -781,7 +913,7 @@
     <div class="task-form">
         <h2 style="margin-bottom: 15px;" id="formTitle">➕ משימה חדשה</h2>
         <input type="text" id="taskTitle" placeholder="תיאור המשימה...">
-        
+
         <select id="taskCategory">
             <option value="כללי">כללי</option>
             <option value="רפואי">רפואי</option>
@@ -798,15 +930,15 @@
 
         <textarea id="taskNotes" placeholder="הערות (אופציונלי)" rows="3"></textarea>
 
-        <div style="display:flex;gap:10px;align-items:center;background:#f9fafb;border:1px solid #e5e7eb;border-radius:10px;padding:10px;margin-bottom:5px;">
-            <label style="color:#6b7280;font-size:13px;white-space:nowrap;">📅 תאריך יעד:</label>
-            <input type="datetime-local" id="taskDueDate" style="flex:1;border:none;background:transparent;font-size:13px;color:#374151;">
-            <button onclick="document.getElementById('taskDueDate').value=''" style="background:none;border:none;cursor:pointer;color:#9ca3af;font-size:16px;" title="נקה">✕</button>
+        <div style="display:flex;gap:10px;align-items:center;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.15);border-radius:10px;padding:10px;margin-bottom:10px;">
+            <label style="color:rgba(255,255,255,0.6);font-size:13px;white-space:nowrap;">📅 תאריך יעד:</label>
+            <input type="datetime-local" id="taskDueDate" style="flex:1;border:none;background:transparent;font-size:13px;color:#ffffff;margin-bottom:0;">
+            <button onclick="document.getElementById('taskDueDate').value=''" style="background:none;border:none;cursor:pointer;color:rgba(255,255,255,0.4);font-size:16px;" title="נקה">✕</button>
         </div>
 
         <div style="display: flex; gap: 10px;">
             <button onclick="saveTask()" class="btn" style="flex: 1;" id="saveBtn">➕ הוסף משימה</button>
-            <button onclick="cancelEdit()" class="btn hidden" style="flex: 1; background: #6b7280;" id="cancelBtn">ביטול</button>
+            <button onclick="cancelEdit()" class="btn hidden" style="flex: 1; background: rgba(107,114,128,0.6);" id="cancelBtn">ביטול</button>
         </div>
     </div>
 
@@ -814,7 +946,7 @@
     <div class="notes-section">
         <h2 style="margin-bottom: 15px;">📝 הערות והדבקות</h2>
         <textarea id="generalNotes" placeholder="כתוב כאן הערות כלליות, רעיונות, קישורים..." style="min-height: 150px;"></textarea>
-        <p style="color: #6b7280; font-size: 14px; margin-top: 10px;">
+        <p style="color: rgba(255,255,255,0.5); font-size: 14px; margin-top: 10px;">
             ההערות נשמרות אוטומטית ✓
         </p>
     </div>
@@ -1066,11 +1198,11 @@
     function scrollToAddTask() {
         // Cancel any existing edit
         cancelEdit();
-        
+
         // Scroll to task form
         const taskForm = document.querySelector('.task-form');
         taskForm.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        
+
         // Focus on the task title input
         setTimeout(() => {
             document.getElementById('taskTitle').focus();
@@ -1152,7 +1284,7 @@
         const defaultTime = new Date(Date.now() + 60 * 60 * 1000);
         const pad = n => String(n).padStart(2, '0');
         const defaultStr = `${defaultTime.getFullYear()}-${pad(defaultTime.getMonth()+1)}-${pad(defaultTime.getDate())}T${pad(defaultTime.getHours())}:${pad(defaultTime.getMinutes())}`;
-        
+
         document.getElementById('reminderTaskId').value = task.id;
         document.getElementById('reminderTaskTitle').textContent = task.title;
         document.getElementById('reminderTime').value = defaultStr;
@@ -1163,25 +1295,7 @@
         document.getElementById('reminderModal').classList.remove('active');
     }
 
-    // קריאה ל-GAS — no-cors עוקף CORS אבל לא מחזיר response
-    // לכן ולידציה נעשית locally, והשליחה היא fire-and-forget
-    async function callGAS(payload) {
-        try {
-            await fetch(GAS_URL, {
-                method: 'POST',
-                mode: 'no-cors',
-                body: JSON.stringify(payload)
-            });
-            return { success: true };
-        } catch (err) {
-            console.error('GAS call failed:', err);
-            throw err;
-        }
-    }
-
     // ולידציה מקומית של קוד גישה
-    // הקוד נשמר ב-localStorage ומאומת בעת שימוש
-    // ולידציה אמיתית מול השרת — GAS ידחה בקשות עם קוד שגוי
     function validateCodeLocally(code) {
         return code && code.length >= 6;
     }
@@ -1241,7 +1355,7 @@
         link.click();
         document.body.removeChild(link);
         URL.revokeObjectURL(url);
-        
+
         showStatus('✅ הקובץ הורד בהצלחה!');
     }
 
@@ -1265,13 +1379,13 @@
         reader.onload = (e) => {
             try {
                 const importedData = JSON.parse(e.target.result);
-                
+
                 if (importedData.tasks && importedData.lists) {
                     const merged = mergeData(importedData);
-                    
+
                     tasks = merged.tasks;
                     lists = merged.lists;
-                    
+
                     if (importedData.listNotes) {
                         listNotes = { ...listNotes, ...importedData.listNotes };
                     } else if (importedData.notes) {
@@ -1279,17 +1393,17 @@
                             listNotes[lists[0]] = importedData.notes;
                         }
                     }
-                    
+
                     lastSyncDate = new Date().toISOString();
                     localStorage.setItem('taskManagerLastSync', lastSyncDate);
-                    
+
                     saveToLocal();
                     updateListSelector();
                     updateNotesTextarea();
                     renderTasks();
                     updateStats();
                     updateSyncDate();
-                    
+
                     showStatus(`✅ המיזוג הושלם! נוספו ${merged.addedCount} משימות, ${lists.length} רשימות`);
                 } else {
                     showStatus(`❌ קובץ לא תקין — מפתחות: ${Object.keys(importedData).join(', ')}`);
@@ -1307,13 +1421,13 @@
         const existingTasksMap = new Map(tasks.map(t => [t.id, t]));
         let addedCount = 0;
         let updatedCount = 0;
-        
+
         // Merge tasks
         const mergedTasks = [...tasks];
-        
+
         importedData.tasks.forEach(importedTask => {
             const existingTask = existingTasksMap.get(importedTask.id);
-            
+
             if (!existingTask) {
                 // New task - add it (including deleted tasks)
                 mergedTasks.push({
@@ -1325,13 +1439,13 @@
                 // Task exists - check which is newer or has different status
                 const importedDate = new Date(importedTask.createdAt || 0);
                 const existingDate = new Date(existingTask.createdAt || 0);
-                
+
                 // If deleted status differs, use the one that's deleted (preserve deletions)
-                const shouldUpdate = 
+                const shouldUpdate =
                     importedTask.deleted !== existingTask.deleted ||
                     importedTask.completed !== existingTask.completed ||
                     importedDate > existingDate;
-                
+
                 if (shouldUpdate) {
                     const index = mergedTasks.findIndex(t => t.id === importedTask.id);
                     if (index !== -1) {
@@ -1344,11 +1458,11 @@
                 }
             }
         });
-        
+
         // Merge lists — גם מהרשימה וגם מתוך המשימות עצמן
         const listsFromTasks = mergedTasks.map(t => t.listName).filter(Boolean);
         const mergedLists = [...new Set([...lists, ...importedData.lists, ...listsFromTasks])];
-        
+
         return {
             tasks: mergedTasks,
             lists: mergedLists,
@@ -1376,7 +1490,7 @@
             showStatus('❌ רשימה עם שם זה כבר קיימת');
             return;
         }
-        
+
         lists.push(name);
         currentList = name;
         listNotes[name] = ''; // Initialize empty notes for new list
@@ -1402,7 +1516,7 @@
 
     async function deleteList() {
         const tasksInList = tasks.filter(t => t.listName === currentList && !t.deleted);
-        
+
         if (tasksInList.length > 0) {
             if (!confirm(`הרשימה "${currentList}" מכילה ${tasksInList.length} משימות פעילות. האם אתה בטוח?`)) {
                 hideDeleteListConfirm();
@@ -1412,7 +1526,7 @@
 
         const listToDelete = currentList;
         lists = lists.filter(l => l !== currentList);
-        
+
         // סמן כנמחק מקומית ושלח לשרת
         const deletePromises = [];
         tasks.forEach(task => {
@@ -1422,12 +1536,12 @@
             }
         });
         await Promise.all(deletePromises);
-        
+
         // Delete notes for this list
         delete listNotes[listToDelete];
-        
+
         currentList = lists[0];
-        
+
         saveToLocal();
         updateListSelector();
         updateNotesTextarea();
@@ -1438,7 +1552,7 @@
 
     function updateListSelector() {
         const selector = document.getElementById('listSelector');
-        selector.innerHTML = lists.map(list => 
+        selector.innerHTML = lists.map(list =>
             `<option value="${list}" ${list === currentList ? 'selected' : ''}>${list}</option>`
         ).join('');
     }
@@ -1502,11 +1616,11 @@
         document.getElementById('taskPriority').value = task.priority;
         document.getElementById('taskNotes').value = task.notes || '';
         document.getElementById('taskDueDate').value = task.dueDate || '';
-        
+
         document.getElementById('formTitle').textContent = '✏️ עריכת משימה';
         document.getElementById('saveBtn').textContent = '💾 שמור שינויים';
         document.getElementById('cancelBtn').classList.remove('hidden');
-        
+
         // Scroll to form at bottom
         document.querySelector('.task-form').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     }
@@ -1518,7 +1632,7 @@
         document.getElementById('taskPriority').value = 'רגיל';
         document.getElementById('taskNotes').value = '';
         document.getElementById('taskDueDate').value = '';
-        
+
         document.getElementById('formTitle').textContent = '➕ משימה חדשה';
         document.getElementById('saveBtn').textContent = '➕ הוסף משימה';
         document.getElementById('cancelBtn').classList.add('hidden');
@@ -1576,9 +1690,9 @@
         const listTasks = tasks.filter(t => t.listName === currentList);
         const filterCat = document.getElementById('filterCategory').value;
         const filterStatus = document.getElementById('filterStatus').value;
-        
+
         let filtered = filterCat === 'הכל' ? listTasks : listTasks.filter(t => t.category === filterCat);
-        
+
         // Apply status filter for stats
         if (filterStatus === 'active') {
             filtered = filtered.filter(t => !t.completed && !t.deleted);
@@ -1589,11 +1703,11 @@
         } else if (filterStatus === 'all') {
             // Show all
         }
-        
+
         const completed = filtered.filter(t => t.completed && !t.deleted).length;
         const active = filtered.filter(t => !t.completed && !t.deleted).length;
         const deleted = filtered.filter(t => t.deleted).length;
-        
+
         document.getElementById('completedCount').textContent = completed;
         document.getElementById('activeCount').textContent = active;
         document.getElementById('totalCount').textContent = `${filtered.length} (🗑️ ${deleted})`;
@@ -1603,9 +1717,9 @@
         const filterCat = document.getElementById('filterCategory').value;
         const filterStatus = document.getElementById('filterStatus').value;
         const listTasks = tasks.filter(t => t.listName === currentList);
-        
+
         let filteredTasks = filterCat === 'הכל' ? listTasks : listTasks.filter(t => t.category === filterCat);
-        
+
         // Apply status filter
         if (filterStatus === 'active') {
             filteredTasks = filteredTasks.filter(t => !t.completed && !t.deleted);
@@ -1616,7 +1730,7 @@
         } else if (filterStatus === 'all') {
             // Show all tasks
         }
-        
+
         // מיין לפי תאריך יעד — עם תאריך קודם, ללא תאריך אחרון
         const priorityOrder = { 'גבוה': 0, 'רגיל': 1, 'נמוך': 2 };
         const activeTasks = filteredTasks.filter(t => !t.completed && !t.deleted).sort((a, b) => {
@@ -1637,7 +1751,7 @@
 
         // Active tasks
         if (activeTasks.length > 0 && filterStatus !== 'completed' && filterStatus !== 'deleted') {
-            html += '<h2 style="color: white; margin-bottom: 15px;">⏳ משימות פעילות</h2>';
+            html += '<h2 style="color: rgba(255,255,255,0.9); margin-bottom: 15px; text-shadow: 0 2px 8px rgba(0,0,0,0.3);">⏳ משימות פעילות</h2>';
             activeTasks.forEach(task => {
                 html += renderTask(task);
             });
@@ -1645,7 +1759,7 @@
 
         // Completed tasks
         if (completedTasks.length > 0 && (filterStatus === 'completed' || filterStatus === 'all')) {
-            html += '<h2 style="color: white; margin: 30px 0 15px;">✅ משימות שהושלמו</h2>';
+            html += '<h2 style="color: rgba(255,255,255,0.9); margin: 30px 0 15px; text-shadow: 0 2px 8px rgba(0,0,0,0.3);">✅ משימות שהושלמו</h2>';
             completedTasks.forEach(task => {
                 html += renderTask(task);
             });
@@ -1653,14 +1767,14 @@
 
         // Deleted tasks
         if (deletedTasks.length > 0 && (filterStatus === 'deleted' || filterStatus === 'all')) {
-            html += '<h2 style="color: white; margin: 30px 0 15px;">🗑️ משימות שנמחקו</h2>';
+            html += '<h2 style="color: rgba(255,255,255,0.9); margin: 30px 0 15px; text-shadow: 0 2px 8px rgba(0,0,0,0.3);">🗑️ משימות שנמחקו</h2>';
             deletedTasks.forEach(task => {
                 html += renderTask(task);
             });
         }
 
         if (filteredTasks.length === 0) {
-            html = '<div class="task-item" style="text-align: center; border: none;"><p>אין משימות להצגה 🎯</p></div>';
+            html = '<div class="task-item" style="text-align: center; border-right: none; cursor: default;"><p style="color: rgba(255,255,255,0.6);">אין משימות להצגה 🎯</p></div>';
         }
 
         document.getElementById('tasksList').innerHTML = html;
@@ -1671,7 +1785,7 @@
         const isDeleted = task.deleted;
         const isCompleted = task.completed && !task.deleted;
         const reminder = getTaskReminder(task);
-        
+
         let actions = '';
         if (isDeleted) {
             // Deleted task actions
@@ -1690,14 +1804,14 @@
                     ${task.completed ? '↩️' : '✓'}
                 </button>
                 ${reminder ? `
-                    <button onclick="toggleReminderPanel(${reminder.id}, event)" class="btn btn-small" style="background:#fef3c7;color:#92400e;" title="תזכורת פעילה">🔔</button>
+                    <button onclick="toggleReminderPanel(${reminder.id}, event)" class="btn btn-small" style="background:rgba(251,191,36,0.2);color:#fde68a;border:1px solid rgba(251,191,36,0.3);" title="תזכורת פעילה">🔔</button>
                 ` : `
                     <button onclick="sendToWhatsApp(${task.id}, event)" class="btn btn-small btn-whatsapp" title="שלח תזכורת">📱</button>
                 `}
                 <button onclick="deleteTask(${task.id}, event)" class="btn btn-small btn-delete">🗑️</button>
             `;
         }
-        
+
         return `
             <div class="task-item ${isCompleted ? 'completed' : ''} ${isDeleted ? 'deleted' : ''} ${editingTaskId === task.id ? 'selected' : ''}" ${!isDeleted ? `onclick="editTask(${task.id})"` : ''}>
                 <div class="task-header">
@@ -1709,23 +1823,23 @@
                 <div class="task-meta">
                     <span class="badge badge-category">${task.category}</span>
                     <span class="badge badge-priority-${task.priority}">${task.priority}</span>
-                    <span class="badge" style="background: #f3f4f6; color: #6b7280;">
+                    <span class="badge" style="background:rgba(255,255,255,0.1);color:rgba(255,255,255,0.6);border:1px solid rgba(255,255,255,0.15);">
                         ${new Date(task.createdAt).toLocaleDateString('he-IL')}
                     </span>
-                    ${isDeleted ? '<span class="badge" style="background: #fee2e2; color: #991b1b;">🗑️ נמחק</span>' : ''}
-                    ${task.dueDate ? `<span class="badge" style="background:${new Date(task.dueDate) < new Date() && !task.completed ? '#fee2e2;color:#991b1b' : '#ede9fe;color:#5b21b6'};">📅 ${new Date(task.dueDate).toLocaleString('he-IL', {day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'})}</span>` : ''}
+                    ${isDeleted ? '<span class="badge" style="background:rgba(248,113,113,0.2);color:#fca5a5;border:1px solid rgba(248,113,113,0.3);">🗑️ נמחק</span>' : ''}
+                    ${task.dueDate ? `<span class="badge" style="background:${new Date(task.dueDate) < new Date() && !task.completed ? 'rgba(248,113,113,0.2);color:#fca5a5;border:1px solid rgba(248,113,113,0.3)' : 'rgba(139,92,246,0.2);color:#c4b5fd;border:1px solid rgba(139,92,246,0.3)'};">📅 ${new Date(task.dueDate).toLocaleString('he-IL', {day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'})}</span>` : ''}
                 </div>
                 ${task.notes ? `<div class="task-notes">${task.notes}</div>` : ''}
                 ${reminder ? `
-                <div id="reminderPanel_${reminder.id}" style="display:none;margin-top:8px;padding:10px;background:#fffbeb;border:1px solid #fde68a;border-radius:8px;">
-                    <div style="font-size:12px;color:#92400e;margin-bottom:8px;">
+                <div id="reminderPanel_${reminder.id}" style="display:none;margin-top:8px;padding:10px;background:rgba(251,191,36,0.1);border:1px solid rgba(251,191,36,0.25);border-radius:10px;">
+                    <div style="font-size:12px;color:rgba(255,255,255,0.8);margin-bottom:8px;">
                         🔔 תזכורת מתוזמנת: ${new Date(reminder.scheduled_time).toLocaleString('he-IL', {day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'})}
                     </div>
                     <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
                         <input type="datetime-local" id="reminderEdit_${reminder.id}"
                             value="${(() => { const d = new Date(reminder.scheduled_time); const offset = d.getTimezoneOffset() * 60000; return new Date(d - offset).toISOString().slice(0,16); })()}"
-                            style="flex:1;min-width:160px;padding:6px;border:1px solid #fde68a;border-radius:6px;font-size:12px;">
-                        <button onclick="updateReminderTime(${reminder.id})" class="btn btn-small" style="background:#10b981;color:white;">✏️ עדכן</button>
+                            style="flex:1;min-width:160px;padding:6px;border:1px solid rgba(251,191,36,0.35);border-radius:6px;font-size:12px;background:rgba(255,255,255,0.1);color:white;margin-bottom:0;">
+                        <button onclick="updateReminderTime(${reminder.id})" class="btn btn-small btn-secondary">✏️ עדכן</button>
                         <button onclick="cancelReminder(${reminder.id})" class="btn btn-small btn-delete">❌ בטל</button>
                     </div>
                 </div>` : ''}
@@ -1936,7 +2050,6 @@
         } catch(e) {}
     }
 </script>
-```
 
 <!-- Admin PIN Modal -->
 <div id="adminPinModal" class="modal">
@@ -1948,7 +2061,7 @@
         <div style="padding:20px;text-align:center;">
             <p style="color:#6b7280;margin-bottom:16px;">הכנס את קוד ה-PIN שלך</p>
             <input type="password" id="adminPinInput" placeholder="PIN" maxlength="10"
-                style="width:100%;padding:12px;border:2px solid #e5e7eb;border-radius:10px;font-size:20px;text-align:center;letter-spacing:8px;"
+                style="width:100%;padding:12px;border:2px solid #e5e7eb;border-radius:10px;font-size:20px;text-align:center;letter-spacing:8px;background:white;color:#374151;"
                 onkeydown="if(event.key==='Enter')verifyAdminPin()">
             <button onclick="verifyAdminPin()" class="btn btn-primary" style="width:100%;margin-top:16px;">
                 כניסה 🔐
@@ -1977,7 +2090,7 @@
                 <h3 style="color:#374151;margin-bottom:12px;">🔑 נפק קוד גישה חדש</h3>
                 <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
                     <input type="text" id="newCodeName" placeholder="שם המשתמש"
-                        style="flex:1;min-width:150px;padding:10px;border:2px solid #e5e7eb;border-radius:10px;">
+                        style="flex:1;min-width:150px;padding:10px;border:2px solid #e5e7eb;border-radius:10px;background:white;color:#374151;">
                     <button onclick="createNewCode()" class="btn btn-primary">➕ צור קוד</button>
                 </div>
                 <div id="newCodeResult" style="display:none;margin-top:10px;padding:10px;background:#f0fdf4;border:1px solid #86efac;border-radius:8px;font-family:monospace;font-size:16px;color:#15803d;text-align:center;"></div>
