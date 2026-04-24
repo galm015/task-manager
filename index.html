@@ -217,12 +217,12 @@
         box-shadow: 0 8px 25px rgba(245,158,11,0.4);
     }
 
-    .btn-whatsapp {
-        background: linear-gradient(135deg, rgba(37,211,102,0.75), rgba(18,186,88,0.75));
+    .btn-telegram {
+        background: linear-gradient(135deg, rgba(36,161,222,0.75), rgba(0,136,204,0.75));
     }
-    .btn-whatsapp:hover {
-        background: linear-gradient(135deg, rgba(37,211,102,1), rgba(18,186,88,1));
-        box-shadow: 0 8px 25px rgba(37,211,102,0.4);
+    .btn-telegram:hover {
+        background: linear-gradient(135deg, rgba(36,161,222,1), rgba(0,136,204,1));
+        box-shadow: 0 8px 25px rgba(36,161,222,0.4);
     }
 
     .btn-primary {
@@ -801,15 +801,15 @@
             </div>
 
             <div class="settings-group">
-                <label class="settings-label">📱 מספר טלפון לתזכורות WhatsApp</label>
+                <label class="settings-label"><i class="fa-brands fa-telegram"></i> Telegram Chat ID לתזכורות</label>
                 <input
-                    type="tel"
-                    id="phoneNumber"
+                    type="text"
+                    id="telegramChatId"
                     class="settings-input"
-                    placeholder="972501234567"
+                    placeholder="123456789"
                     dir="ltr"
                 >
-                <p class="settings-hint">מספר עם קידומת מדינה ללא + (ישראל: 972XXXXXXXXX)</p>
+                <p class="settings-hint">שלח /start לבוט ואז הרץ <a href="https://t.me/userinfobot" target="_blank" style="color:#667eea;">@userinfobot</a> כדי לקבל את ה-Chat ID שלך</p>
             </div>
 
             <button onclick="saveSettings()" class="btn" style="width: 100%;">
@@ -825,7 +825,7 @@
     <div id="reminderModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
-                <h2 style="color: #059669; margin: 0;">📱 תזכורת WhatsApp</h2>
+                <h2 style="color: #24a1de; margin: 0;"><i class="fa-brands fa-telegram"></i> תזכורת Telegram</h2>
                 <button onclick="closeReminderModal()" class="modal-close">✕</button>
             </div>
             <input type="hidden" id="reminderTaskId">
@@ -837,11 +837,11 @@
                 <input type="datetime-local" id="reminderTime" class="settings-input" dir="ltr">
             </div>
             <div style="display: flex; gap: 10px; margin-top: 10px;">
-                <button onclick="sendReminder(false)" class="btn btn-whatsapp" style="flex: 1;">
-                    ⏰ תזמן שליחה
+                <button onclick="sendReminder(false)" class="btn btn-telegram" style="flex: 1;">
+                    <i class="fa-solid fa-clock"></i> תזמן שליחה
                 </button>
                 <button onclick="sendReminder(true)" class="btn btn-secondary" style="flex: 1;">
-                    📤 שלח עכשיו
+                    <i class="fa-solid fa-paper-plane"></i> שלח עכשיו
                 </button>
             </div>
         </div>
@@ -1035,8 +1035,8 @@
         return res.json();
     }
 
-    async function loginToServer(code, phone) {
-        const data = await apiCall('POST', '/api/users/login', { access_code: code, phone });
+    async function loginToServer(code, telegram_chat_id) {
+        const data = await apiCall('POST', '/api/users/login', { access_code: code, telegram_chat_id });
         apiToken = data.token;
         apiUserId = data.user_id;
         localStorage.setItem('taskManagerApiToken', apiToken);
@@ -1135,7 +1135,7 @@
     let editingTaskId = null;
     let listNotes = {};
     let lastSyncDate = null;
-    let userPhone = '';
+    let telegramChatId = '';
     let accessCode = '';
 
     // Load data on startup
@@ -1170,8 +1170,8 @@
 
     function loadFromLocal() {
         // טוען רק הגדרות משתמש — נתונים מגיעים מהשרת
-        const savedPhone = localStorage.getItem('taskManagerUserPhone');
-        if (savedPhone) userPhone = savedPhone;
+        const savedChatId = localStorage.getItem('taskManagerTelegramChatId');
+        if (savedChatId) telegramChatId = savedChatId;
 
         const savedCode = localStorage.getItem('taskManagerAccessCode');
         if (savedCode) accessCode = savedCode;
@@ -1179,7 +1179,7 @@
 
     function saveToLocal() {
         // שומר רק הגדרות — נתונים נשמרים בשרת
-        localStorage.setItem('taskManagerUserPhone', userPhone);
+        localStorage.setItem('taskManagerTelegramChatId', telegramChatId);
         localStorage.setItem('taskManagerAccessCode', accessCode);
     }
 
@@ -1249,7 +1249,7 @@
     }
 
     function openSettings() {
-        document.getElementById('phoneNumber').value = userPhone;
+        document.getElementById('telegramChatId').value = telegramChatId;
         document.getElementById('accessCode').value = accessCode;
         document.getElementById('settingsModal').classList.add('active');
     }
@@ -1258,11 +1258,11 @@
         if (!confirm('האם אתה בטוח שברצונך להתנתק?')) return;
         localStorage.removeItem('taskManagerApiToken');
         localStorage.removeItem('taskManagerApiUserId');
-        localStorage.removeItem('taskManagerUserPhone');
+        localStorage.removeItem('taskManagerTelegramChatId');
         localStorage.removeItem('taskManagerAccessCode');
         apiToken = null;
         apiUserId = null;
-        userPhone = '';
+        telegramChatId = '';
         accessCode = '';
         adminAuthenticated = false;
         tasks = [];
@@ -1279,18 +1279,17 @@
     }
 
     async function saveSettings() {
-        const phone = document.getElementById('phoneNumber').value.trim();
-        const code  = document.getElementById('accessCode').value.trim();
+        const chatId = document.getElementById('telegramChatId').value.trim();
+        const code   = document.getElementById('accessCode').value.trim();
 
         if (!code) { showStatus('⚠️ נא להזין קוד גישה'); return; }
-        if (!phone) { showStatus('⚠️ נא להזין מספר טלפון'); return; }
 
         showStatus('⏳ מתחבר לשרת...');
         try {
-            const data = await loginToServer(code, phone);
-            userPhone  = phone;
+            const data = await loginToServer(code, chatId);
+            telegramChatId = chatId;
             accessCode = code;
-            localStorage.setItem('taskManagerUserPhone', phone);
+            localStorage.setItem('taskManagerTelegramChatId', chatId);
             localStorage.setItem('taskManagerAccessCode', code);
             closeSettings();
             showStatus(`✅ מחובר כ-${data.name}`);
@@ -1304,14 +1303,14 @@
         }
     }
 
-    function sendToWhatsApp(taskId, event) {
+    function sendToTelegram(taskId, event) {
         event.stopPropagation();
         const task = tasks.find(t => t.id === taskId);
         if (!task) return;
 
-        if (!userPhone) {
+        if (!telegramChatId) {
             openSettings();
-            showStatus('⚠️ נא להגדיר מספר טלפון תחילה');
+            showStatus('⚠️ נא להגדיר Telegram Chat ID תחילה');
             return;
         }
 
@@ -1351,10 +1350,10 @@
             return;
         }
 
-        if (!userPhone) {
+        if (!telegramChatId) {
             closeReminderModal();
             openSettings();
-            showStatus('⚠️ נא להגדיר מספר טלפון תחילה');
+            showStatus('⚠️ נא להגדיר Telegram Chat ID תחילה');
             return;
         }
 
@@ -1853,7 +1852,7 @@
                 ${reminder ? `
                     <button onclick="toggleReminderPanel(${reminder.id}, event)" class="btn btn-small" style="background:rgba(251,191,36,0.2);color:#fde68a;border:1px solid rgba(251,191,36,0.3);" title="תזכורת פעילה">🔔</button>
                 ` : `
-                    <button onclick="sendToWhatsApp(${task.id}, event)" class="btn btn-small btn-whatsapp" title="שלח תזכורת">📱</button>
+                    <button onclick="sendToTelegram(${task.id}, event)" class="btn btn-small btn-telegram" title="שלח תזכורת"><i class="fa-brands fa-telegram"></i></button>
                 `}
                 <button onclick="deleteTask(${task.id}, event)" class="btn btn-small btn-delete">🗑️</button>
             `;
@@ -1965,7 +1964,7 @@
                     <span class="admin-badge ${u.role === 'admin' ? 'badge-admin' : 'badge-user'}">${u.role}</span>
                     <span class="admin-badge ${u.is_active ? 'badge-active' : 'badge-inactive'}">${u.is_active ? 'פעיל' : 'חסום'}</span>
                     <br>
-                    <small>📱 ${u.phone} | קוד: ${u.access_code}</small>
+                    <small>🤖 Chat ID: ${u.telegram_chat_id || '—'} | קוד: ${u.access_code}</small>
                     <br>
                     <small>כניסה אחרונה: ${u.last_login ? new Date(u.last_login).toLocaleString('he-IL') : 'מעולם'}</small>
                 </div>
