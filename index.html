@@ -1234,6 +1234,13 @@
         }
     }
 
+    function localDatetimeToUTC(localStr) {
+        const [datePart, timePart] = localStr.split('T');
+        const [y, m, d] = datePart.split('-').map(Number);
+        const [h, min] = timePart.split(':').map(Number);
+        return new Date(y, m - 1, d, h, min).toISOString();
+    }
+
     function scrollToAddTask() {
         // Cancel any existing edit
         cancelEdit();
@@ -1359,7 +1366,7 @@
 
         const scheduledTime = sendNow
             ? new Date().toISOString()
-            : new Date(document.getElementById('reminderTime').value).toISOString();
+            : localDatetimeToUTC(document.getElementById('reminderTime').value);
 
         try {
             closeReminderModal();
