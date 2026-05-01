@@ -513,11 +513,6 @@
         font-weight: 600;
     }
 
-    .badge-category {
-        background: rgba(96, 165, 250, 0.2);
-        color: #93c5fd;
-        border: 1px solid rgba(96, 165, 250, 0.3);
-    }
 
     .badge-priority-גבוה {
         background: rgba(248, 113, 113, 0.2);
@@ -864,14 +859,6 @@
     <!-- Filter Section -->
     <div class="filter-section">
         <div class="filter-row">
-            <select id="filterCategory" onchange="renderTasks()" style="flex: 1;">
-                <option value="הכל">כל הקטגוריות</option>
-                <option value="כללי">כללי</option>
-                <option value="רפואי">רפואי</option>
-                <option value="בית">בית</option>
-                <option value="משפחה">משפחה</option>
-                <option value="טיולים">טיולים</option>
-            </select>
             <select id="filterStatus" onchange="renderTasks()" style="flex: 1;">
                 <option value="active">רק פעילות</option>
                 <option value="completed">רק הושלמו</option>
@@ -889,14 +876,6 @@
         <h2 style="margin-bottom: 15px;" id="formTitle">➕ משימה חדשה</h2>
         <input type="text" id="taskTitle" placeholder="תיאור המשימה...">
         
-        <select id="taskCategory">
-            <option value="כללי">כללי</option>
-            <option value="רפואי">רפואי</option>
-            <option value="בית">בית</option>
-            <option value="משפחה">משפחה</option>
-            <option value="טיולים">טיולים</option>
-        </select>
-
         <select id="taskPriority">
             <option value="רגיל">עדיפות רגילה</option>
             <option value="גבוה">עדיפות גבוהה</option>
@@ -1639,7 +1618,7 @@
             const task = tasks.find(t => t.id === editingTaskId);
             if (task) {
                 task.title = title;
-                task.category = document.getElementById('taskCategory').value;
+                task.category = 'כללי';
                 task.priority = document.getElementById('taskPriority').value;
                 task.notes = document.getElementById('taskNotes').value;
                 task.dueDate = document.getElementById('taskDueDate').value || null;
@@ -1655,7 +1634,7 @@
             const task = {
                 id: Date.now(),
                 title: title,
-                category: document.getElementById('taskCategory').value,
+                category: 'כללי',
                 priority: document.getElementById('taskPriority').value,
                 notes: document.getElementById('taskNotes').value,
                 dueDate: document.getElementById('taskDueDate').value || null,
@@ -1684,7 +1663,7 @@
 
         editingTaskId = id;
         document.getElementById('taskTitle').value = task.title;
-        document.getElementById('taskCategory').value = task.category;
+        'כללי' = task.category;
         document.getElementById('taskPriority').value = task.priority;
         document.getElementById('taskNotes').value = task.notes || '';
         document.getElementById('taskDueDate').value = task.dueDate || '';
@@ -1705,7 +1684,7 @@
     function cancelEdit() {
         editingTaskId = null;
         document.getElementById('taskTitle').value = '';
-        document.getElementById('taskCategory').value = 'כללי';
+        'כללי' = 'כללי';
         document.getElementById('taskPriority').value = 'רגיל';
         document.getElementById('taskNotes').value = '';
         document.getElementById('taskDueDate').value = '';
@@ -1770,10 +1749,9 @@
 
     function updateStats() {
         const listTasks = tasks.filter(t => t.listName === currentList);
-        const filterCat = document.getElementById('filterCategory').value;
         const filterStatus = document.getElementById('filterStatus').value;
-        
-        let filtered = filterCat === 'הכל' ? listTasks : listTasks.filter(t => t.category === filterCat);
+
+        let filtered = listTasks;
         
         // Apply status filter for stats
         if (filterStatus === 'active') {
@@ -1796,12 +1774,11 @@
     }
 
     function renderTasks() {
-        const filterCat = document.getElementById('filterCategory').value;
         const filterStatus = document.getElementById('filterStatus').value;
         const searchQuery = (document.getElementById('searchInput')?.value || '').trim().toLowerCase();
         const listTasks = tasks.filter(t => t.listName === currentList);
-        
-        let filteredTasks = filterCat === 'הכל' ? listTasks : listTasks.filter(t => t.category === filterCat);
+
+        let filteredTasks = listTasks;
 
         if (searchQuery) {
             filteredTasks = filteredTasks.filter(t =>
@@ -1918,7 +1895,6 @@
                     </div>
                 </div>
                 <div class="task-meta">
-                    <span class="badge badge-category">${task.category}</span>
                     <span class="badge badge-priority-${task.priority}">${task.priority}</span>
                     <span class="badge" style="background: #f3f4f6; color: #6b7280;">
                         ${new Date(task.createdAt).toLocaleDateString('he-IL')}
