@@ -1993,19 +1993,50 @@
 
     async function loadAdminData() {
         try {
-            const [users, codes, sessions, reminders] = await Promise.all([
+            const [users, codes, sessions, reminders, recurring] = await Promise.all([
                 apiCall('GET', '/api/admin/users'),
                 apiCall('GET', '/api/admin/codes'),
                 apiCall('GET', '/api/sessions/all'),
-                apiCall('GET', '/api/reminders/all')
+                apiCall('GET', '/api/reminders/all'),
+                apiCall('GET', '/api/admin/recurring')
             ]);
             renderAdminUsers(users);
             renderAdminCodes(codes);
             renderAdminSessions(sessions);
             renderAdminReminders(reminders);
+            renderAdminRecurring(recurring);
         } catch(e) {
             showStatus('❌ שגיאה בטעינת נתוני ניהול');
         }
+    }
+
+    async function triggerRecurring() {
+        try {
+            await apiCall('POST', '/api/admin/recurring/trigger');
+            showStatus('✅ הפעלת משימות חוזרות בוצעה');
+            await loadAdminData();
+        } catch(e) {
+            showStatus('❌ שגיאה בהפעלת משימות חוזרות');
+        }
+    }
+
+    function renderAdminRecurring(tasks) {
+        const el = document.getElementById('adminRecurringList');
+        if (!el) return;
+        if (!tasks.length) { el.innerHTML = '<p style="color:#9ca3af;font-size:13px;">אין משימות חוזרות</p>'; return; }
+        const typeLabel = { daily: 'ימים', weekly: 'שבועות', monthly: 'חודשים' };
+        el.innerHTML = tasks.map(t => `
+            <div style="padding:10px;border:1px solid #e5e7eb;border-radius:8px;margin-bottom:8px;font-size:13px;">
+                <div style="font-weight:600;color:#374151;margin-bottom:4px;">🔄 ${t.title}</div>
+                <div style="color:#6b7280;display:flex;gap:16px;flex-wrap:wrap;">
+                    <span>👤 משתמש #${t.user_id}</span>
+                    <span>⏱ כל ${t.recurrence_interval} ${typeLabel[t.recurrence_type] || t.recurrence_type}</span>
+                    <span>📅 מחזור הבא: ${t.recurrence_next ? new Date(t.recurrence_next).toLocaleString('he-IL') : 'לא הוגדר'}</span>
+                    <span>${t.recurrence_telegram ? '📨 טלגרם פעיל' : '📭 ללא טלגרם'}</span>
+                    <span>${t.completed ? '✅ הושלמה' : '⏳ פעילה'}</span>
+                </div>
+            </div>
+        `).join('');
     }
 
     function renderAdminUsers(users) {
@@ -2211,6 +2242,15 @@
             <div class="admin-section">
                 <h3 style="color:#374151;margin-bottom:12px;">🔔 כל התזכורות</h3>
                 <div id="adminRemindersList"></div>
+            </div>
+
+            <!-- Recurring Tasks -->
+            <div class="admin-section">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+                    <h3 style="color:#374151;margin:0;">🔄 משימות חוזרות</h3>
+                    <button onclick="triggerRecurring()" class="btn btn-small" style="background:#6366f1;color:white;font-size:12px;">▶ הפעל עכשיו</button>
+                </div>
+                <div id="adminRecurringList"></div>
             </div>
 
         </div>
