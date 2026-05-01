@@ -711,7 +711,7 @@
                         <i class="fa-solid fa-gear"></i>
                     </button>
                     <div class="version-info">
-                        <span class="version-number">v4.6.5</span>
+                        <span class="version-number">v4.7.0</span>
                     </div>
                 </div>
                 <button id="adminBtn" onclick="openAdminPanel()" class="btn btn-icon" title="ניהול" style="display:none;background:linear-gradient(135deg,#ef4444,#dc2626);color:white;">
@@ -911,6 +911,28 @@
             <button onclick="document.getElementById('taskDueDate').value=''" style="background:none;border:none;cursor:pointer;color:#9ca3af;font-size:16px;" title="נקה">✕</button>
         </div>
 
+        <div style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:10px;padding:10px;margin-bottom:5px;">
+            <div style="display:flex;align-items:center;gap:10px;">
+                <label style="color:#6b7280;font-size:13px;white-space:nowrap;">🔄 משימה חוזרת:</label>
+                <input type="checkbox" id="taskRecurring" onchange="toggleRecurringOptions()" style="width:16px;height:16px;cursor:pointer;">
+            </div>
+            <div id="recurringOptions" style="display:none;margin-top:10px;flex-direction:column;gap:8px;">
+                <div style="display:flex;align-items:center;gap:8px;">
+                    <label style="color:#6b7280;font-size:13px;white-space:nowrap;">כל</label>
+                    <input type="number" id="recurringInterval" value="1" min="1" max="365" style="width:55px;border:1px solid #d1d5db;border-radius:6px;padding:4px 8px;font-size:13px;color:#374151;">
+                    <select id="recurringType" style="flex:1;border:1px solid #d1d5db;border-radius:6px;padding:4px 8px;font-size:13px;color:#374151;">
+                        <option value="daily">ימים</option>
+                        <option value="weekly">שבועות</option>
+                        <option value="monthly" selected>חודשים</option>
+                    </select>
+                </div>
+                <div style="display:flex;align-items:center;gap:8px;">
+                    <input type="checkbox" id="recurringTelegram" style="width:16px;height:16px;cursor:pointer;">
+                    <label style="color:#6b7280;font-size:13px;cursor:pointer;" onclick="document.getElementById('recurringTelegram').click()">שלח טלגרם בכל מחזור</label>
+                </div>
+            </div>
+        </div>
+
         <div style="display: flex; gap: 10px;">
             <button onclick="saveTask()" class="btn" style="flex: 1;" id="saveBtn">➕ הוסף משימה</button>
             <button onclick="cancelEdit()" class="btn hidden" style="flex: 1; background: #6b7280;" id="cancelBtn">ביטול</button>
@@ -1021,7 +1043,12 @@
                 deleted: st.deleted,
                 createdAt: st.created_at,
                 dueDate: st.due_date ? new Date(st.due_date).toISOString().slice(0,16) : null,
-                serverId: st.id
+                serverId: st.id,
+                isRecurring: st.is_recurring || false,
+                recurrenceType: st.recurrence_type || null,
+                recurrenceInterval: st.recurrence_interval || null,
+                recurrenceNext: st.recurrence_next || null,
+                recurrenceTelegram: st.recurrence_telegram || false
             }));
             // בנה רשימות מהמשימות
             const serverLists = [...new Set(tasks.map(t => t.list_name || t.listName).filter(Boolean))];
@@ -1047,7 +1074,11 @@
                 priority: task.priority,
                 list_name: task.listName,
                 external_id: String(task.id),
-                due_date: task.dueDate || null
+                due_date: task.dueDate || null,
+                is_recurring: task.isRecurring || false,
+                recurrence_type: task.recurrenceType || null,
+                recurrence_interval: task.recurrenceInterval || null,
+                recurrence_telegram: task.recurrenceTelegram || false
             });
             task.serverId = result.id;
             saveToLocal();
@@ -1067,7 +1098,11 @@
                 list_name: task.listName,
                 completed: task.completed,
                 deleted: task.deleted,
-                due_date: task.dueDate || null
+                due_date: task.dueDate || null,
+                is_recurring: task.isRecurring || false,
+                recurrence_type: task.recurrenceType || null,
+                recurrence_interval: task.recurrenceInterval || null,
+                recurrence_telegram: task.recurrenceTelegram || false
             });
         } catch(e) {
             console.warn('Update failed:', e.message);
@@ -1186,6 +1221,11 @@
         const [y, m, d] = datePart.split('-').map(Number);
         const [h, min] = timePart.split(':').map(Number);
         return new Date(y, m - 1, d, h, min).toISOString();
+    }
+
+    function toggleRecurringOptions() {
+        const el = document.getElementById('recurringOptions');
+        el.style.display = document.getElementById('taskRecurring').checked ? 'flex' : 'none';
     }
 
     function toggleSearch() {
@@ -1603,6 +1643,10 @@
                 task.priority = document.getElementById('taskPriority').value;
                 task.notes = document.getElementById('taskNotes').value;
                 task.dueDate = document.getElementById('taskDueDate').value || null;
+                task.isRecurring = document.getElementById('taskRecurring').checked;
+                task.recurrenceType = document.getElementById('recurringType').value;
+                task.recurrenceInterval = parseInt(document.getElementById('recurringInterval').value) || 1;
+                task.recurrenceTelegram = document.getElementById('recurringTelegram').checked;
                 saveToLocal();
                 updateTaskOnServer(task);
                 showStatus('✅ המשימה עודכנה בהצלחה');
@@ -1617,7 +1661,11 @@
                 dueDate: document.getElementById('taskDueDate').value || null,
                 completed: false,
                 listName: currentList,
-                createdAt: new Date().toISOString()
+                createdAt: new Date().toISOString(),
+                isRecurring: document.getElementById('taskRecurring').checked,
+                recurrenceType: document.getElementById('recurringType').value,
+                recurrenceInterval: parseInt(document.getElementById('recurringInterval').value) || 1,
+                recurrenceTelegram: document.getElementById('recurringTelegram').checked
             };
             tasks.push(task);
             saveToLocal();
@@ -1640,7 +1688,12 @@
         document.getElementById('taskPriority').value = task.priority;
         document.getElementById('taskNotes').value = task.notes || '';
         document.getElementById('taskDueDate').value = task.dueDate || '';
-        
+        document.getElementById('taskRecurring').checked = task.isRecurring || false;
+        document.getElementById('recurringType').value = task.recurrenceType || 'monthly';
+        document.getElementById('recurringInterval').value = task.recurrenceInterval || 1;
+        document.getElementById('recurringTelegram').checked = task.recurrenceTelegram || false;
+        toggleRecurringOptions();
+
         document.getElementById('formTitle').textContent = '✏️ עריכת משימה';
         document.getElementById('saveBtn').textContent = '💾 שמור שינויים';
         document.getElementById('cancelBtn').classList.remove('hidden');
@@ -1656,7 +1709,12 @@
         document.getElementById('taskPriority').value = 'רגיל';
         document.getElementById('taskNotes').value = '';
         document.getElementById('taskDueDate').value = '';
-        
+        document.getElementById('taskRecurring').checked = false;
+        document.getElementById('recurringType').value = 'monthly';
+        document.getElementById('recurringInterval').value = '1';
+        document.getElementById('recurringTelegram').checked = false;
+        toggleRecurringOptions();
+
         document.getElementById('formTitle').textContent = '➕ משימה חדשה';
         document.getElementById('saveBtn').textContent = '➕ הוסף משימה';
         document.getElementById('cancelBtn').classList.add('hidden');
@@ -1852,6 +1910,7 @@
                 <div class="task-header">
                     <div class="task-title ${isCompleted ? 'completed' : ''} ${isDeleted ? 'completed' : ''}" style="display:flex;align-items:center;gap:8px;">
                         ${isOverdue ? '<span class="overdue-dot" title="תאריך יעד עבר"></span>' : ''}
+                        ${task.isRecurring ? '<span title="משימה חוזרת" style="font-size:14px;">🔄</span>' : ''}
                         ${task.title}
                     </div>
                     <div class="task-actions">
@@ -1867,6 +1926,7 @@
                     ${isDeleted ? '<span class="badge" style="background: #fee2e2; color: #991b1b;">🗑️ נמחק</span>' : ''}
                     ${task.dueDate ? `<span class="badge" style="background:${new Date(task.dueDate) < new Date() && !task.completed ? '#fee2e2;color:#991b1b' : '#ede9fe;color:#5b21b6'};">📅 ${new Date(task.dueDate).toLocaleString('he-IL', {day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'})}</span>` : ''}
                     ${isOverdue ? '<span class="overdue-badge"><span class="overdue-dot"></span>פג תוקף</span>' : ''}
+                    ${task.isRecurring && task.recurrenceNext ? `<span class="badge" style="background:rgba(99,102,241,0.2);color:#a5b4fc;border:1px solid rgba(99,102,241,0.4);">🔄 מחזור הבא: ${new Date(task.recurrenceNext).toLocaleDateString('he-IL')}</span>` : ''}
                 </div>
                 ${task.notes ? `<div class="task-notes">${task.notes}</div>` : ''}
                 ${reminder ? `
