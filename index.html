@@ -882,6 +882,13 @@
             <option value="נמוך">עדיפות נמוכה</option>
         </select>
 
+        <div id="taskListNameContainer" style="display:none;background:#f9fafb;border:1px solid #e5e7eb;border-radius:10px;padding:10px;margin-bottom:5px;">
+            <div style="display:flex;align-items:center;gap:10px;">
+                <label style="color:#6b7280;font-size:13px;white-space:nowrap;">📋 העבר לרשימה:</label>
+                <select id="taskListName" style="flex:1;border:1px solid #d1d5db;border-radius:6px;padding:4px 8px;font-size:13px;color:#374151;background:#fff;"></select>
+            </div>
+        </div>
+
         <textarea id="taskNotes" placeholder="הערות (אופציונלי)" rows="3"></textarea>
 
         <div style="display:flex;gap:10px;align-items:center;background:#f9fafb;border:1px solid #e5e7eb;border-radius:10px;padding:10px;margin-bottom:5px;">
@@ -930,8 +937,8 @@
 
 <script>
     // VERSION INFO
-    const APP_VERSION = '4.6.4';
-    const VERSION_DATE = '19.04.2026';
+    const APP_VERSION = '4.7.1';
+    const VERSION_DATE = '07.05.2026';
 
     // ============================================
     // API Configuration
@@ -1622,6 +1629,7 @@
                 task.priority = document.getElementById('taskPriority').value;
                 task.notes = document.getElementById('taskNotes').value;
                 task.dueDate = document.getElementById('taskDueDate').value || null;
+                task.listName = document.getElementById('taskListName').value;
                 task.isRecurring = document.getElementById('taskRecurring').checked;
                 task.recurrenceType = document.getElementById('recurringType').value;
                 task.recurrenceInterval = parseInt(document.getElementById('recurringInterval').value) || 1;
@@ -1672,6 +1680,10 @@
         document.getElementById('recurringTelegram').checked = task.recurrenceTelegram || false;
         toggleRecurringOptions();
 
+        const listSelect = document.getElementById('taskListName');
+        listSelect.innerHTML = lists.map(l => `<option value="${l}" ${l === task.listName ? 'selected' : ''}>${l}</option>`).join('');
+        document.getElementById('taskListNameContainer').style.display = '';
+
         document.getElementById('formTitle').textContent = '✏️ עריכת משימה';
         document.getElementById('saveBtn').textContent = '💾 שמור שינויים';
         document.getElementById('cancelBtn').classList.remove('hidden');
@@ -1691,6 +1703,7 @@
         document.getElementById('recurringInterval').value = '1';
         document.getElementById('recurringTelegram').checked = false;
         toggleRecurringOptions();
+        document.getElementById('taskListNameContainer').style.display = 'none';
 
         document.getElementById('formTitle').textContent = '➕ משימה חדשה';
         document.getElementById('saveBtn').textContent = '➕ הוסף משימה';
