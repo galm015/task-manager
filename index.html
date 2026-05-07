@@ -706,7 +706,7 @@
                         <i class="fa-solid fa-gear"></i>
                     </button>
                     <div class="version-info">
-                        <span class="version-number">v4.7.1</span>
+                        <span class="version-number">v4.7.2</span>
                     </div>
                 </div>
                 <button id="adminBtn" onclick="openAdminPanel()" class="btn btn-icon" title="ניהול" style="display:none;background:linear-gradient(135deg,#ef4444,#dc2626);color:white;">
@@ -937,7 +937,7 @@
 
 <script>
     // VERSION INFO
-    const APP_VERSION = '4.7.1';
+    const APP_VERSION = '4.7.2';
     const VERSION_DATE = '07.05.2026';
 
     // ============================================
@@ -1125,7 +1125,6 @@
         // נקה נתונים ישנים מ-localStorage
         localStorage.removeItem('taskManagerTasks');
         localStorage.removeItem('taskManagerLists');
-        localStorage.removeItem('taskManagerListNotes');
         localStorage.removeItem('taskManagerLastSync');
         localStorage.removeItem('mathWebsiteTasks');
         localStorage.removeItem('mathWebsiteLists');
@@ -1151,18 +1150,22 @@
     };
 
     function loadFromLocal() {
-        // טוען רק הגדרות משתמש — נתונים מגיעים מהשרת
         const savedChatId = localStorage.getItem('taskManagerTelegramChatId');
         if (savedChatId) telegramChatId = savedChatId;
 
         const savedCode = localStorage.getItem('taskManagerAccessCode');
         if (savedCode) accessCode = savedCode;
+
+        const savedNotes = localStorage.getItem('taskManagerListNotes');
+        if (savedNotes) {
+            try { listNotes = JSON.parse(savedNotes); } catch(e) {}
+        }
     }
 
     function saveToLocal() {
-        // שומר רק הגדרות — נתונים נשמרים בשרת
         localStorage.setItem('taskManagerTelegramChatId', telegramChatId);
         localStorage.setItem('taskManagerAccessCode', accessCode);
+        localStorage.setItem('taskManagerListNotes', JSON.stringify(listNotes));
     }
 
     function updateSyncDate() {
