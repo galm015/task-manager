@@ -391,14 +391,15 @@
 
     /* ===== LIST SELECTOR ===== */
     .list-selector {
-        padding: 20px;
-        margin-bottom: 20px;
+        padding: 12px 16px;
+        margin-bottom: 12px;
     }
 
     .list-control {
         display: flex;
-        gap: 10px;
-        margin-bottom: 15px;
+        gap: 8px;
+        align-items: center;
+        margin-bottom: 0;
     }
 
     /* ===== FILTER SECTION ===== */
@@ -706,7 +707,7 @@
                         <i class="fa-solid fa-gear"></i>
                     </button>
                     <div class="version-info">
-                        <span class="version-number">v4.7.2</span>
+                        <span class="version-number">v4.7.3</span>
                     </div>
                 </div>
                 <button id="adminBtn" onclick="openAdminPanel()" class="btn btn-icon" title="ניהול" style="display:none;background:linear-gradient(135deg,#ef4444,#dc2626);color:white;">
@@ -775,6 +776,37 @@
         </div>
     </div>
 
+    <!-- List Selector -->
+    <div class="list-selector">
+        <div class="list-control">
+            <span style="font-size:13px;color:rgba(255,255,255,0.55);white-space:nowrap;">📋 <span id="listsCount">1 רשימות</span></span>
+            <select id="listSelector" onchange="loadTasks()" style="flex: 1;">
+                <option value="כללי">כללי</option>
+            </select>
+            <button onclick="showNewListForm()" class="btn btn-secondary btn-small">+</button>
+            <button onclick="showDeleteListConfirm()" class="btn btn-delete btn-small">🗑️</button>
+        </div>
+        <div id="newListForm" class="hidden" style="margin-top: 10px;">
+            <input type="text" id="newListName" placeholder="שם הרשימה החדשה...">
+            <div style="display: flex; gap: 10px;">
+                <button onclick="createNewList()" class="btn btn-secondary" style="flex: 1;">יצירה</button>
+                <button onclick="hideNewListForm()" class="btn" style="flex: 1; background: #6b7280;">ביטול</button>
+            </div>
+        </div>
+        <div id="deleteListConfirm" class="hidden" style="margin-top: 10px; padding: 12px; background: #fee2e2; border-radius: 8px;">
+            <p style="color: #991b1b; font-weight: bold; margin-bottom: 10px;">⚠️ האם אתה בטוח שברצונך למחוק את הרשימה?</p>
+            <div style="display: flex; gap: 10px;">
+                <button onclick="deleteList()" class="btn btn-delete" style="flex: 1;">כן, מחק</button>
+                <button onclick="hideDeleteListConfirm()" class="btn" style="flex: 1; background: #6b7280;">ביטול</button>
+            </div>
+        </div>
+        <div class="stats" style="margin-top: 10px;">
+            <span class="stat-item">✅ הושלמו: <strong id="completedCount">0</strong></span>
+            <span class="stat-item">⏳ פעילות: <strong id="activeCount">0</strong></span>
+            <span class="stat-item">📊 סה"כ: <strong id="totalCount">0</strong></span>
+        </div>
+    </div>
+
     <!-- Tasks List (Active) -->
     <div id="tasksList"></div>
 
@@ -819,41 +851,6 @@
         <p style="color: #6b7280; font-size: 14px; margin-top: 10px;">
             💡 הייבוא מזהה שינויים חדשים ומשלב אותם אוטומטית ללא מחיקת נתונים
         </p>
-    </div>
-
-    <!-- List Selector -->
-    <div class="list-selector">
-        <label style="font-weight: bold; display: block; margin-bottom: 10px;">📋 בחר רשימה:</label>
-        <div class="list-control">
-            <select id="listSelector" onchange="loadTasks()" style="flex: 1;">
-                <option value="כללי">כללי</option>
-            </select>
-            <button onclick="showDeleteListConfirm()" class="btn btn-delete btn-small">🗑️</button>
-        </div>
-        <button onclick="showNewListForm()" class="btn btn-secondary" style="width: 100%;">
-            + רשימה חדשה
-        </button>
-        <div id="newListForm" class="hidden" style="margin-top: 15px;">
-            <input type="text" id="newListName" placeholder="שם הרשימה החדשה...">
-            <div style="display: flex; gap: 10px;">
-                <button onclick="createNewList()" class="btn btn-secondary" style="flex: 1;">יצירה</button>
-                <button onclick="hideNewListForm()" class="btn" style="flex: 1; background: #6b7280;">ביטול</button>
-            </div>
-        </div>
-        <div id="deleteListConfirm" class="hidden" style="margin-top: 15px; padding: 15px; background: #fee2e2; border-radius: 8px;">
-            <p style="color: #991b1b; font-weight: bold; margin-bottom: 10px;">
-                ⚠️ האם אתה בטוח שברצונך למחוק את הרשימה?
-            </p>
-            <div style="display: flex; gap: 10px;">
-                <button onclick="deleteList()" class="btn btn-delete" style="flex: 1;">כן, מחק</button>
-                <button onclick="hideDeleteListConfirm()" class="btn" style="flex: 1; background: #6b7280;">ביטול</button>
-            </div>
-        </div>
-        <div class="stats" style="margin-top: 15px;">
-            <span class="stat-item">✅ הושלמו: <strong id="completedCount">0</strong></span>
-            <span class="stat-item">⏳ פעילות: <strong id="activeCount">0</strong></span>
-            <span class="stat-item">📊 סה"כ: <strong id="totalCount">0</strong></span>
-        </div>
     </div>
 
     <!-- Filter Section -->
@@ -937,7 +934,7 @@
 
 <script>
     // VERSION INFO
-    const APP_VERSION = '4.7.2';
+    const APP_VERSION = '4.7.3';
     const VERSION_DATE = '07.05.2026';
 
     // ============================================
@@ -1605,9 +1602,11 @@
 
     function updateListSelector() {
         const selector = document.getElementById('listSelector');
-        selector.innerHTML = lists.map(list => 
+        selector.innerHTML = lists.map(list =>
             `<option value="${list}" ${list === currentList ? 'selected' : ''}>${list}</option>`
         ).join('');
+        const countEl = document.getElementById('listsCount');
+        if (countEl) countEl.textContent = `${lists.length} רשימות`;
     }
 
     function loadTasks() {
