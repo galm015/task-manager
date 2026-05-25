@@ -707,7 +707,7 @@
                         <i class="fa-solid fa-gear"></i>
                     </button>
                     <div class="version-info">
-                        <span class="version-number">v4.7.3</span>
+                        <span class="version-number">v4.7.4</span>
                     </div>
                 </div>
                 <button id="adminBtn" onclick="openAdminPanel()" class="btn btn-icon" title="ניהול" style="display:none;background:linear-gradient(135deg,#ef4444,#dc2626);color:white;">
@@ -916,26 +916,28 @@
             </div>
         </div>
 
+        <div style="background:#eef2ff;border:1px solid #c7d2fe;border-radius:10px;padding:10px;margin-bottom:5px;">
+            <div style="display:flex;gap:10px;align-items:center;">
+                <label style="color:#4f46e5;font-size:13px;white-space:nowrap;">📱 תזמון טלגרם:</label>
+                <input type="datetime-local" id="taskTelegramTime" style="flex:1;border:none;background:transparent;font-size:13px;color:#374151;">
+                <button onclick="document.getElementById('taskTelegramTime').value=''" style="background:none;border:none;cursor:pointer;color:#9ca3af;font-size:16px;" title="נקה">✕</button>
+            </div>
+            <button onclick="sendTelegramNow()" style="margin-top:8px;width:100%;background:#6366f1;color:#fff;border:none;border-radius:7px;padding:6px;font-size:13px;cursor:pointer;">
+                📤 שלח עכשיו
+            </button>
+        </div>
+
         <div style="display: flex; gap: 10px;">
             <button onclick="saveTask()" class="btn" style="flex: 1;" id="saveBtn">➕ הוסף משימה</button>
             <button onclick="cancelEdit()" class="btn hidden" style="flex: 1; background: #6b7280;" id="cancelBtn">ביטול</button>
         </div>
-    </div>
-
-    <!-- Notes Section -->
-    <div class="notes-section">
-        <h2 style="margin-bottom: 15px;">📝 הערות והדבקות</h2>
-        <textarea id="generalNotes" placeholder="כתוב כאן הערות כלליות, רעיונות, קישורים..." style="min-height: 150px;"></textarea>
-        <p style="color: #6b7280; font-size: 14px; margin-top: 10px;">
-            ההערות נשמרות אוטומטית ✓
-        </p>
     </div>
 </div>
 
 <script>
     // VERSION INFO
     const APP_VERSION = '4.7.3';
-    const VERSION_DATE = '07.05.2026';
+    const VERSION_DATE = '25.05.2026';
 
     // ============================================
     // API Configuration
@@ -1092,6 +1094,16 @@
         }
     }
 
+    async function sendTelegramNow() {
+        const title = document.getElementById('taskTitle').value.trim();
+        if (!title) { showStatus('❌ נא להזין תיאור משימה'); return; }
+        // שלח בעוד 10 שניות — מספיק זמן לשרת לעבד
+        const inTenSeconds = new Date(Date.now() + 10000).toISOString();
+        const tempTask = { title, notes: document.getElementById('taskNotes').value, serverId: null };
+        const ok = await scheduleReminderOnServer(tempTask, inTenSeconds);
+        showStatus(ok ? '✅ ההודעה תישלח בטלגרם תוך שניות' : '❌ שגיאה בשליחה');
+    }
+
     async function scheduleReminderOnServer(task, scheduledTime) {
         if (!apiToken) return false;
         try {
@@ -1175,14 +1187,8 @@
     }
 
     function updateNotesTextarea() {
-        const notesEl = document.getElementById('generalNotes');
-        notesEl.value = listNotes[currentList] || '';
+        // notes section removed
     }
-
-    document.getElementById('generalNotes').addEventListener('input', (e) => {
-        listNotes[currentList] = e.target.value;
-        saveToLocal();
-    });
 
     function showStatus(message) {
         const statusDiv = document.getElementById('statusMessage');
@@ -1656,10 +1662,16 @@
                 recurrenceInterval: parseInt(document.getElementById('recurringInterval').value) || 1,
                 recurrenceTelegram: document.getElementById('recurringTelegram').checked
             };
+            const telegramTime = document.getElementById('taskTelegramTime').value;
             tasks.push(task);
             saveToLocal();
-            pushTaskToServer(task);
-            showStatus('✅ המשימה נוספה בהצלחה');
+            await pushTaskToServer(task);
+            if (telegramTime) {
+                const ok = await scheduleReminderOnServer(task, new Date(telegramTime).toISOString());
+                showStatus(ok ? '✅ המשימה נוספה ותזכורת טלגרם נקבעה' : '✅ המשימה נוספה (תזכורת טלגרם נכשלה)');
+            } else {
+                showStatus('✅ המשימה נוספה בהצלחה');
+            }
         }
 
         cancelEdit();
@@ -1700,6 +1712,7 @@
         document.getElementById('taskPriority').value = 'רגיל';
         document.getElementById('taskNotes').value = '';
         document.getElementById('taskDueDate').value = '';
+        document.getElementById('taskTelegramTime').value = '';
         document.getElementById('taskRecurring').checked = false;
         document.getElementById('recurringType').value = 'monthly';
         document.getElementById('recurringInterval').value = '1';
